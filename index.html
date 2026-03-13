@@ -1,0 +1,2012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RGI Teacher Timetable System</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --navy: #0a2342;
+    --navy-mid: #163a60;
+    --blue: #1565c0;
+    --blue-light: #1e88e5;
+    --sky: #e3f2fd;
+    --sky-mid: #bbdefb;
+    --gold: #f9a825;
+    --gold-light: #fff8e1;
+    --white: #ffffff;
+    --off-white: #f7f9fc;
+    --gray-100: #f0f4f8;
+    --gray-200: #dde4ed;
+    --gray-400: #90a4ae;
+    --gray-600: #546e7a;
+    --gray-800: #263238;
+    --green: #2e7d32;
+    --green-light: #e8f5e9;
+    --red: #c62828;
+    --red-light: #ffebee;
+    --orange: #e65100;
+    --orange-light: #fff3e0;
+    --radius: 8px;
+    --radius-lg: 14px;
+    --shadow: 0 2px 12px rgba(10,35,66,0.08);
+    --shadow-lg: 0 8px 32px rgba(10,35,66,0.14);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--off-white);
+    color: var(--gray-800);
+    min-height: 100vh;
+    font-size: 15px;
+  }
+
+  /* ── HEADER ── */
+  #app-header {
+    background: var(--navy);
+    color: white;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.25);
+  }
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .header-logo {
+    width: 42px;
+    height: 42px;
+    background: var(--gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'EB Garamond', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--navy);
+    flex-shrink: 0;
+  }
+  .header-title {
+    font-family: 'EB Garamond', serif;
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    line-height: 1.2;
+  }
+  .header-sub {
+    font-size: 11px;
+    color: var(--sky-mid);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+  #admin-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+  }
+  .badge-admin { background: var(--gold); color: var(--navy); padding: 3px 10px; border-radius: 20px; font-weight: 600; font-size: 12px; }
+  .btn-logout { background: none; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 4px 12px; border-radius: 20px; cursor: pointer; font-size: 12px; font-family: inherit; }
+  .btn-logout:hover { background: rgba(255,255,255,0.1); }
+  #btn-admin-login { background: none; border: 1px solid rgba(255,255,255,0.4); color: rgba(255,255,255,0.8); padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 13px; font-family: inherit; }
+  #btn-admin-login:hover { background: rgba(255,255,255,0.1); }
+
+  /* ── NAV ── */
+  #app-nav {
+    background: var(--navy-mid);
+    display: flex;
+    gap: 2px;
+    padding: 0 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  #app-nav::-webkit-scrollbar { display: none; }
+  .nav-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    padding: 10px 16px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .nav-btn:hover { color: white; }
+  .nav-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+  .nav-btn.admin-only { display: none; }
+
+  /* ── MAIN ── */
+  #app-main { max-width: 1100px; margin: 0 auto; padding: 28px 20px; }
+
+  /* ── PAGES ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── CARDS & LAYOUT ── */
+  .card {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-family: 'EB Garamond', serif;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--navy);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; }
+
+  /* ── STAT CARDS ── */
+  .stat-card {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .stat-label { font-size: 12px; color: var(--gray-600); font-weight: 500; text-transform: uppercase; letter-spacing: 0.6px; }
+  .stat-value { font-size: 32px; font-weight: 600; color: var(--navy); line-height: 1; }
+  .stat-sub { font-size: 13px; color: var(--gray-400); }
+  .stat-card.accent-gold { border-left: 4px solid var(--gold); }
+  .stat-card.accent-blue { border-left: 4px solid var(--blue-light); }
+  .stat-card.accent-red { border-left: 4px solid var(--red); }
+  .stat-card.accent-green { border-left: 4px solid var(--green); }
+
+  /* ── HOME BUTTONS ── */
+  .home-nav-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 20px; }
+  .home-nav-card {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    padding: 24px 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .home-nav-card:hover { border-color: var(--blue-light); box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+  .home-nav-icon { font-size: 28px; }
+  .home-nav-title { font-size: 16px; font-weight: 600; color: var(--navy); }
+  .home-nav-desc { font-size: 13px; color: var(--gray-600); }
+
+  /* ── FORMS ── */
+  .form-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 140px; }
+  label { font-size: 13px; font-weight: 500; color: var(--gray-600); }
+  input[type=text], input[type=time], input[type=number], input[type=password], select, textarea {
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--gray-800);
+    background: white;
+    width: 100%;
+    transition: border-color 0.15s;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--blue-light); box-shadow: 0 0 0 3px rgba(21,101,192,0.08); }
+
+  /* ── BUTTONS ── */
+  .btn {
+    padding: 9px 18px;
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-primary { background: var(--blue); color: white; }
+  .btn-primary:hover { background: var(--navy-mid); }
+  .btn-secondary { background: var(--gray-100); color: var(--gray-800); border: 1px solid var(--gray-200); }
+  .btn-secondary:hover { background: var(--gray-200); }
+  .btn-danger { background: var(--red-light); color: var(--red); border: 1px solid #ffcdd2; }
+  .btn-danger:hover { background: #ffcdd2; }
+  .btn-success { background: var(--green-light); color: var(--green); border: 1px solid #c8e6c9; }
+  .btn-success:hover { background: #c8e6c9; }
+  .btn-gold { background: var(--gold); color: var(--navy); font-weight: 600; }
+  .btn-gold:hover { background: #f57f17; }
+  .btn-sm { padding: 5px 12px; font-size: 13px; }
+  .btn-print { background: var(--navy); color: white; }
+  .btn-print:hover { background: var(--navy-mid); }
+
+  /* ── TABLES ── */
+  .table-wrap { overflow-x: auto; margin-top: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { background: var(--navy); color: white; padding: 10px 12px; text-align: left; font-weight: 500; font-size: 13px; letter-spacing: 0.3px; }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--gray-100); vertical-align: middle; }
+  tr:hover td { background: var(--sky); }
+  .timetable-table th { background: var(--navy); color: white; text-align: center; min-width: 90px; }
+  .timetable-table td { text-align: center; border: 1px solid var(--gray-200); }
+  .timetable-table td.today-col { background: var(--gold-light); border-color: var(--gold); }
+  .timetable-table th.today-col { background: var(--gold); color: var(--navy); }
+  .cell-subject { font-weight: 500; color: var(--navy); font-size: 13px; }
+  .cell-teacher { font-size: 12px; color: var(--gray-600); }
+
+  /* ── BADGES ── */
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+  .badge-present { background: var(--green-light); color: var(--green); }
+  .badge-absent { background: var(--red-light); color: var(--red); }
+  .badge-leisure { background: var(--orange-light); color: var(--orange); }
+  .badge-subbed { background: var(--sky); color: var(--blue); }
+
+  /* ── ALERTS ── */
+  .alert { padding: 12px 16px; border-radius: var(--radius); font-size: 14px; margin-bottom: 16px; }
+  .alert-info { background: var(--sky); color: #0d47a1; border-left: 4px solid var(--blue-light); }
+  .alert-warning { background: var(--gold-light); color: #e65100; border-left: 4px solid var(--gold); }
+  .alert-success { background: var(--green-light); color: var(--green); border-left: 4px solid var(--green); }
+  .alert-danger { background: var(--red-light); color: var(--red); border-left: 4px solid var(--red); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,35,66,0.5);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: var(--shadow-lg);
+  }
+  .modal-title { font-family: 'EB Garamond', serif; font-size: 22px; font-weight: 500; color: var(--navy); margin-bottom: 20px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+  /* ── SUBSTITUTION SECTION ── */
+  .sub-card { background: var(--red-light); border: 1px solid #ffcdd2; border-radius: var(--radius-lg); padding: 16px; margin-bottom: 14px; }
+  .sub-card-title { font-weight: 600; color: var(--red); font-size: 15px; margin-bottom: 10px; }
+  .sub-period { background: white; border: 1px solid #ffcdd2; border-radius: var(--radius); padding: 10px 14px; margin-bottom: 8px; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .sub-period-info { flex: 1; min-width: 120px; }
+  .leisure-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .leisure-btn { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid #90caf9; background: var(--sky); color: #0d47a1; font-family: inherit; transition: all 0.15s; }
+  .leisure-btn:hover { background: var(--blue); color: white; }
+  .leisure-btn.heavy { border-color: var(--orange); background: var(--orange-light); color: var(--orange); }
+  .leisure-btn.assigned { background: var(--green-light); border-color: #c8e6c9; color: var(--green); }
+
+  /* ── LOGIN MODAL ── */
+  #login-modal .modal { max-width: 360px; }
+  .login-logo { width: 60px; height: 60px; background: var(--navy); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-family: 'EB Garamond', serif; font-size: 26px; color: var(--gold); font-weight: 600; }
+
+  /* ── HELPERS ── */
+  .flex { display: flex; }
+  .gap-8 { gap: 8px; }
+  .gap-12 { gap: 12px; }
+  .items-center { align-items: center; }
+  .justify-between { justify-content: space-between; }
+  .flex-wrap { flex-wrap: wrap; }
+  .mt-8 { margin-top: 8px; }
+  .mt-16 { margin-top: 16px; }
+  .mt-24 { margin-top: 24px; }
+  .mb-8 { margin-bottom: 8px; }
+  .mb-16 { margin-bottom: 16px; }
+  .text-sm { font-size: 13px; }
+  .text-muted { color: var(--gray-400); }
+  .text-red { color: var(--red); }
+  .text-green { color: var(--green); }
+  .text-navy { color: var(--navy); }
+  .font-bold { font-weight: 600; }
+  .hidden { display: none !important; }
+  hr { border: none; border-top: 1px solid var(--gray-200); margin: 16px 0; }
+
+  /* ── HOME HERO ── */
+  .home-hero {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+    border-radius: var(--radius-lg);
+    padding: 32px 28px;
+    color: white;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .home-hero::after {
+    content: '';
+    position: absolute;
+    right: -40px;
+    top: -40px;
+    width: 200px;
+    height: 200px;
+    background: rgba(249,168,37,0.12);
+    border-radius: 50%;
+  }
+  .home-hero-school { font-family: 'EB Garamond', serif; font-size: 36px; font-weight: 500; letter-spacing: 1px; }
+  .home-hero-tagline { font-size: 13px; color: var(--sky-mid); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+  .home-hero-date { font-size: 14px; color: rgba(255,255,255,0.75); margin-top: 12px; }
+
+  /* ── PERIOD TABLE ── */
+  .period-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+  .period-num { width: 32px; height: 32px; background: var(--navy); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+
+  /* ── TIMETABLE ASSIGN ── */
+  .tt-class-select { margin-bottom: 16px; }
+  .tt-grid { overflow-x: auto; }
+  .tt-grid table th:first-child { min-width: 100px; }
+  .tt-cell-input { width: 100%; font-size: 12px; padding: 4px 6px; border-radius: 4px; min-width: 100px; }
+
+  /* ── PRINT STYLES ── */
+  @media print {
+    body { background: white; font-size: 12px; }
+    #app-header, #app-nav, .no-print, .btn, .btn-print { display: none !important; }
+    .page { display: block !important; }
+    .page:not(.print-target) { display: none !important; }
+    .card { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
+    .print-header { display: block !important; }
+    table { font-size: 11px; }
+    th, td { padding: 6px 8px; }
+    .timetable-table td.today-col, .timetable-table th.today-col { background: #f5f5f5 !important; color: black !important; border: 2px solid #333 !important; }
+    #app-main { padding: 0; max-width: 100%; }
+  }
+  .print-header { display: none; text-align: center; margin-bottom: 16px; }
+  .print-header h2 { font-family: 'EB Garamond', serif; font-size: 22px; }
+  .print-header p { font-size: 13px; color: #555; }
+
+  /* ── TOAST ── */
+  #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    padding: 12px 18px; border-radius: var(--radius); font-size: 14px; font-weight: 500;
+    box-shadow: var(--shadow-lg); max-width: 380px; opacity: 0;
+    transform: translateY(12px); transition: all 0.25s;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.success { background: var(--green-light); color: var(--green); border-left: 4px solid var(--green); }
+  .toast.danger  { background: var(--red-light);   color: var(--red);   border-left: 4px solid var(--red); }
+  .toast.info    { background: var(--sky);          color: #0d47a1;      border-left: 4px solid var(--blue-light); }
+
+  /* ── SUB CELL STYLES ── */
+  .cell-sub { background: #fff3e0; border-radius: 4px; padding: 2px 5px; }
+  .cell-sub .cell-subject { color: var(--orange); }
+  .cell-sub .cell-teacher { color: var(--orange); font-style: italic; }
+  .admin-dashboard { margin-top: 24px; }
+  .admin-dashboard-heading {
+    font-family: 'EB Garamond', serif;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--navy);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .admin-dashboard-heading::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 22px;
+    background: var(--gold);
+    border-radius: 2px;
+  }
+  .admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+  }
+  .admin-action-card {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    padding: 20px 18px;
+    cursor: pointer;
+    transition: all 0.18s;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+  .admin-action-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--card-accent, var(--blue));
+    transform: scaleX(0);
+    transition: transform 0.18s;
+    transform-origin: left;
+  }
+  .admin-action-card:hover { border-color: var(--blue-light); box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+  .admin-action-card:hover::after { transform: scaleX(1); }
+  .admin-action-icon {
+    width: 44px; height: 44px;
+    border-radius: var(--radius);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    background: var(--icon-bg, var(--sky));
+  }
+  .admin-action-title { font-size: 15px; font-weight: 600; color: var(--navy); }
+  .admin-action-desc { font-size: 12px; color: var(--gray-600); line-height: 1.5; }
+  .admin-action-arrow { font-size: 18px; color: var(--gray-400); margin-top: auto; text-align: right; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header id="app-header">
+  <div class="header-brand">
+    <div class="header-logo">RGI</div>
+    <div>
+      <div class="header-title">RGI Teacher Timetable</div>
+      <div class="header-sub">Timetable Management System</div>
+    </div>
+  </div>
+  <div id="admin-status">
+    <span id="admin-badge" class="badge-admin hidden">Admin</span>
+    <button id="btn-logout" class="btn-logout hidden" onclick="logout()">Logout</button>
+    <button id="btn-admin-login" onclick="openLogin()">Admin Login</button>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav id="app-nav">
+  <button class="nav-btn active" onclick="showPage('home')">Home</button>
+  <button class="nav-btn" onclick="showPage('teacher-view')">Teacher Timetable</button>
+  <button class="nav-btn" onclick="showPage('class-view')">Class Timetable</button>
+  <button class="nav-btn" onclick="showPage('leave-view')">Leaves &amp; Substitutions</button>
+  <button class="nav-btn admin-only" onclick="showPage('manage-staff')">Manage Staff</button>
+  <button class="nav-btn admin-only" onclick="showPage('manage-classes')">Manage Classes</button>
+  <button class="nav-btn admin-only" onclick="showPage('manage-periods')">Periods</button>
+  <button class="nav-btn admin-only" onclick="showPage('assign-timetable')">Assign Timetable</button>
+  <button class="nav-btn admin-only" onclick="showPage('mark-leave')">Mark Leave</button>
+  <button class="nav-btn admin-only" onclick="showPage('substitutions')">Substitutions</button>
+</nav>
+
+<!-- MAIN -->
+<main id="app-main">
+
+  <!-- HOME PAGE -->
+  <div id="page-home" class="page active">
+    <div class="home-hero">
+      <div class="home-hero-school">RGI School</div>
+      <div class="home-hero-tagline">Teacher Timetable Management System</div>
+      <div class="home-hero-date" id="home-date"></div>
+    </div>
+    <div class="grid-3 mb-16" id="home-stats"></div>
+    <div class="home-nav-grid">
+      <div class="home-nav-card" onclick="showPage('teacher-view')">
+        <div class="home-nav-icon">👨‍🏫</div>
+        <div class="home-nav-title">Teacher Timetable</div>
+        <div class="home-nav-desc">View any teacher's weekly schedule</div>
+      </div>
+      <div class="home-nav-card" onclick="showPage('class-view')">
+        <div class="home-nav-icon">🏫</div>
+        <div class="home-nav-title">Class Timetable</div>
+        <div class="home-nav-desc">View timetable for any class</div>
+      </div>
+      <div class="home-nav-card" onclick="showPage('leave-view')">
+        <div class="home-nav-icon">📋</div>
+        <div class="home-nav-title">Leaves &amp; Substitutions</div>
+        <div class="home-nav-desc">Today's absent staff and substitutes</div>
+      </div>
+    </div>
+
+    <!-- ADMIN DASHBOARD (shown only when logged in) -->
+    <div class="admin-dashboard hidden" id="admin-dashboard">
+      <div class="admin-dashboard-heading">Admin Quick Actions</div>
+      <div class="admin-grid">
+        <div class="admin-action-card" style="--card-accent:#1565c0;--icon-bg:#e3f2fd" onclick="showPage('manage-staff')">
+          <div class="admin-action-icon">👤</div>
+          <div class="admin-action-title">Add / Manage Staff</div>
+          <div class="admin-action-desc">Add new teachers, edit designations and assigned subjects</div>
+          <div class="admin-action-arrow">→</div>
+        </div>
+        <div class="admin-action-card" style="--card-accent:#2e7d32;--icon-bg:#e8f5e9" onclick="showPage('manage-classes')">
+          <div class="admin-action-icon">🏫</div>
+          <div class="admin-action-title">Create Classes</div>
+          <div class="admin-action-desc">Add new classes and assign class teachers</div>
+          <div class="admin-action-arrow">→</div>
+        </div>
+        <div class="admin-action-card" style="--card-accent:#f9a825;--icon-bg:#fff8e1" onclick="showPage('manage-periods')">
+          <div class="admin-action-icon">⏱</div>
+          <div class="admin-action-title">Configure Periods</div>
+          <div class="admin-action-desc">Set number of periods, timings and durations</div>
+          <div class="admin-action-arrow">→</div>
+        </div>
+        <div class="admin-action-card" style="--card-accent:#6a1b9a;--icon-bg:#f3e5f5" onclick="showPage('assign-timetable')">
+          <div class="admin-action-icon">📅</div>
+          <div class="admin-action-title">Create Timetable</div>
+          <div class="admin-action-desc">Assign teachers and subjects to each period per class</div>
+          <div class="admin-action-arrow">→</div>
+        </div>
+        <div class="admin-action-card" style="--card-accent:#c62828;--icon-bg:#ffebee" onclick="showPage('mark-leave')">
+          <div class="admin-action-icon">🔴</div>
+          <div class="admin-action-title">Mark Staff Leave</div>
+          <div class="admin-action-desc">Mark staff as absent for today to trigger substitution</div>
+          <div class="admin-action-arrow">→</div>
+        </div>
+        <div class="admin-action-card" style="--card-accent:#e65100;--icon-bg:#fff3e0" onclick="showPage('substitutions')">
+          <div class="admin-action-icon">🔄</div>
+          <div class="admin-action-title">Substitution Dashboard</div>
+          <div class="admin-action-desc">Assign free staff to cover absent teachers' periods</div>
+          <div class="admin-action-arrow">→</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TEACHER VIEW -->
+  <div id="page-teacher-view" class="page">
+    <div class="card">
+      <div class="print-header" id="print-teacher-header"></div>
+      <div class="flex items-center justify-between flex-wrap gap-8 mb-16 no-print">
+        <div class="card-title" style="margin:0;border:none;padding:0">Teacher Timetable</div>
+        <button class="btn btn-print no-print" onclick="printPage('teacher-view')">🖨 Print</button>
+      </div>
+      <div class="form-row no-print" style="align-items:flex-end">
+        <div class="form-group" style="max-width:300px">
+          <label>Select Teacher</label>
+          <select id="tv-teacher-select" onchange="renderTeacherTimetable()"></select>
+        </div>
+        <div class="form-group" style="max-width:200px">
+          <label>View for date</label>
+          <input type="date" id="tv-date-picker" onchange="renderTeacherTimetable()">
+        </div>
+        <div class="form-group" style="justify-content:flex-end">
+          <button class="btn btn-secondary btn-sm" onclick="document.getElementById('tv-date-picker').value=todayStr();renderTeacherTimetable()">Today</button>
+        </div>
+      </div>
+      <div id="tv-output"></div>
+    </div>
+  </div>
+
+  <!-- CLASS VIEW -->
+  <div id="page-class-view" class="page">
+    <div class="card">
+      <div class="print-header" id="print-class-header"></div>
+      <div class="flex items-center justify-between flex-wrap gap-8 mb-16 no-print">
+        <div class="card-title" style="margin:0;border:none;padding:0">Class Timetable</div>
+        <button class="btn btn-print no-print" onclick="printPage('class-view')">🖨 Print</button>
+      </div>
+      <div class="form-row no-print" style="align-items:flex-end">
+        <div class="form-group" style="max-width:220px">
+          <label>View mode</label>
+          <select id="cv-mode" onchange="renderClassTimetable()">
+            <option value="single">Single class</option>
+            <option value="all">All classes</option>
+            <option value="multi">Select multiple</option>
+          </select>
+        </div>
+        <div class="form-group" style="max-width:260px" id="cv-single-wrap">
+          <label>Select Class</label>
+          <select id="cv-class-select" onchange="renderClassTimetable()"></select>
+        </div>
+        <div class="form-group" id="cv-multi-wrap" style="display:none">
+          <label>Select Classes (hold Ctrl/Cmd)</label>
+          <select id="cv-multi-select" multiple size="4" onchange="renderClassTimetable()" style="min-width:200px"></select>
+        </div>
+        <div class="form-group" style="max-width:200px">
+          <label>View for date</label>
+          <input type="date" id="cv-date-picker" onchange="renderClassTimetable()">
+        </div>
+        <div class="form-group" style="justify-content:flex-end">
+          <button class="btn btn-secondary btn-sm" onclick="document.getElementById('cv-date-picker').value=todayStr();renderClassTimetable()">Today</button>
+        </div>
+      </div>
+      <div id="cv-output"></div>
+    </div>
+  </div>
+
+  <!-- LEAVE VIEW -->
+  <div id="page-leave-view" class="page">
+    <div class="card">
+      <div class="card-title">Leaves &amp; Substitutions</div>
+      <div class="form-row no-print" style="margin-bottom:16px;align-items:flex-end">
+        <div class="form-group" style="max-width:220px">
+          <label>View for date</label>
+          <input type="date" id="lv-date-picker" onchange="renderLeaveView()">
+        </div>
+        <div class="form-group" style="justify-content:flex-end">
+          <button class="btn btn-secondary btn-sm" onclick="document.getElementById('lv-date-picker').value=todayStr();renderLeaveView()">Today</button>
+        </div>
+      </div>
+      <div id="lv-output"></div>
+    </div>
+  </div>
+
+  <!-- MANAGE STAFF -->
+  <div id="page-manage-staff" class="page">
+    <div class="card">
+      <div class="card-title">Manage Staff</div>
+      <div class="form-row">
+        <div class="form-group"><label>Staff Name</label><input type="text" id="staff-name" placeholder="e.g. Mr. Rajan"></div>
+        <div class="form-group"><label>Designation</label><input type="text" id="staff-desig" placeholder="e.g. PGT Mathematics"></div>
+        <div class="form-group"><label>Subjects (comma separated)</label><input type="text" id="staff-subjects" placeholder="e.g. Maths, Science"></div>
+        <div class="form-group" style="justify-content:flex-end">
+          <button class="btn btn-primary" onclick="saveStaff()">+ Add Staff</button>
+        </div>
+      </div>
+      <div id="staff-edit-form" class="hidden">
+        <hr>
+        <div class="alert alert-info">Editing staff member. Update fields and click Save.</div>
+        <div class="form-row">
+          <div class="form-group"><label>Name</label><input type="text" id="edit-staff-name"></div>
+          <div class="form-group"><label>Designation</label><input type="text" id="edit-staff-desig"></div>
+          <div class="form-group"><label>Subjects</label><input type="text" id="edit-staff-subjects"></div>
+          <input type="hidden" id="edit-staff-id">
+          <div class="form-group" style="justify-content:flex-end;flex-direction:row;gap:8px">
+            <button class="btn btn-secondary btn-sm" onclick="cancelEditStaff()">Cancel</button>
+            <button class="btn btn-primary btn-sm" onclick="updateStaff()">Save</button>
+          </div>
+        </div>
+      </div>
+      <hr>
+      <div class="table-wrap"><table id="staff-table">
+        <thead><tr><th>#</th><th>Name</th><th>Designation</th><th>Subjects</th><th>Actions</th></tr></thead>
+        <tbody id="staff-tbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- MANAGE CLASSES -->
+  <div id="page-manage-classes" class="page">
+    <div class="card">
+      <div class="card-title">Manage Classes</div>
+      <div class="form-row">
+        <div class="form-group"><label>Class Name</label><input type="text" id="class-name" placeholder="e.g. Class 6A"></div>
+        <div class="form-group"><label>Class Teacher</label><select id="class-teacher-select"></select></div>
+        <div class="form-group" style="justify-content:flex-end">
+          <button class="btn btn-primary" onclick="saveClass()">+ Add Class</button>
+        </div>
+      </div>
+      <hr>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Class</th><th>Class Teacher</th><th>Breaks</th><th>Actions</th></tr></thead>
+        <tbody id="classes-tbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- MANAGE PERIODS -->
+  <div id="page-manage-periods" class="page">
+    <div class="card">
+      <div class="card-title">Configure Periods &amp; Breaks</div>
+      <div class="form-row">
+        <div class="form-group" style="max-width:160px">
+          <label>Number of Periods</label>
+          <input type="number" id="num-periods" min="1" max="12" value="8">
+        </div>
+        <div class="form-group" style="max-width:160px">
+          <label>First Period Start</label>
+          <input type="time" id="period-start" value="08:30">
+        </div>
+        <div class="form-group" style="max-width:160px">
+          <label>Duration (minutes)</label>
+          <input type="number" id="period-duration" min="10" max="120" value="45">
+        </div>
+        <div class="form-group" style="justify-content:flex-end">
+          <button class="btn btn-primary" onclick="generatePeriods()">Generate Periods</button>
+        </div>
+      </div>
+      <div class="form-row" style="background:var(--gray-100);padding:12px;border-radius:var(--radius);margin-bottom:8px">
+        <div style="font-size:13px;font-weight:500;color:var(--navy);width:100%;margin-bottom:8px">Add a Break / Interval</div>
+        <div class="form-group" style="max-width:180px">
+          <label>Break Type</label>
+          <select id="break-type">
+            <option value="lunch">Lunch Break</option>
+            <option value="break">Short Break / Interval</option>
+          </select>
+        </div>
+        <div class="form-group" style="max-width:140px">
+          <label>Start Time</label>
+          <input type="time" id="break-start" value="10:45">
+        </div>
+        <div class="form-group" style="max-width:140px">
+          <label>End Time</label>
+          <input type="time" id="break-end" value="11:00">
+        </div>
+        <div class="form-group" style="justify-content:flex-end">
+          <button class="btn btn-secondary" onclick="addBreak()">+ Add Break</button>
+        </div>
+      </div>
+      <hr>
+      <div id="periods-list"></div>
+      <div class="mt-16">
+        <button class="btn btn-gold" onclick="savePeriods()">Save Periods &amp; Breaks</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ASSIGN TIMETABLE -->
+  <div id="page-assign-timetable" class="page">
+    <div class="card">
+      <div class="card-title">Assign Timetable</div>
+      <div class="alert alert-info" style="margin-bottom:14px">
+        <strong>Note:</strong> This timetable is fixed for the academic year. Remember: Tamil subject staff for <strong>Classes 5–8</strong> and <strong>Classes 9–12</strong> are different — assign the correct teacher per class group.
+      </div>
+      <div class="form-row no-print">
+        <div class="form-group" style="max-width:260px">
+          <label>Select Class</label>
+          <select id="tt-class-select" onchange="loadTimetableEditor()"></select>
+        </div>
+        <div class="form-group" style="justify-content:flex-end">
+          <button class="btn btn-gold" onclick="saveTimetable()">💾 Save Timetable</button>
+        </div>
+      </div>
+      <div id="tt-editor"></div>
+    </div>
+  </div>
+
+  <!-- MARK LEAVE -->
+  <div id="page-mark-leave" class="page">
+    <div class="card">
+      <div class="card-title">Mark Staff Leave</div>
+      <div class="alert alert-info">Select a date and mark staff as absent. You can mark leave in advance for any date.</div>
+      <div class="form-row" style="margin-bottom:16px;align-items:flex-end">
+        <div class="form-group" style="max-width:220px">
+          <label>Select Date</label>
+          <input type="date" id="leave-date-picker" onchange="renderMarkLeave()">
+        </div>
+        <div class="form-group" style="justify-content:flex-end">
+          <button class="btn btn-secondary" onclick="document.getElementById('leave-date-picker').value=todayStr();renderMarkLeave()">Today</button>
+        </div>
+      </div>
+      <div id="leave-day-label" class="text-sm text-muted mb-16"></div>
+      <div id="leave-staff-list"></div>
+      <div class="mt-16">
+        <button class="btn btn-primary" onclick="saveLeave()">Save Leave Records</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUBSTITUTIONS -->
+  <div id="page-substitutions" class="page">
+    <div class="card">
+      <div class="card-title">Substitution Dashboard</div>
+      <div class="form-row" style="margin-bottom:16px;align-items:flex-end">
+        <div class="form-group" style="max-width:220px">
+          <label>View substitutions for date</label>
+          <input type="date" id="sub-date-picker" onchange="renderSubstitutions()">
+        </div>
+        <div class="form-group" style="justify-content:flex-end;flex-direction:row;gap:8px">
+          <button class="btn btn-secondary" onclick="document.getElementById('sub-date-picker').value=todayStr();renderSubstitutions()">Today</button>
+          <button class="btn btn-gold" onclick="saveSubstitutions()">💾 Save Substitutions</button>
+        </div>
+      </div>
+      <div id="sub-output"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- LOGIN MODAL -->
+<div class="modal-overlay" id="login-modal">
+  <div class="modal">
+    <div class="login-logo">RGI</div>
+    <div class="modal-title" style="text-align:center">Admin Login</div>
+    <div class="form-group mb-16">
+      <label>Enter Passkey</label>
+      <input type="password" id="passkey-input" placeholder="Enter admin passkey" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div id="login-error" class="alert alert-danger hidden">Incorrect passkey. Please try again.</div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeLogin()">Cancel</button>
+      <button class="btn btn-primary" onclick="doLogin()">Login</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// TOAST UTILITY
+// ═══════════════════════════════════════════════════════
+function showToast(msg, type='info', duration=3500) {
+  const tc = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  tc.appendChild(t);
+  requestAnimationFrame(() => { t.classList.add('show'); });
+  setTimeout(() => {
+    t.classList.remove('show');
+    setTimeout(() => t.remove(), 300);
+  }, duration);
+}
+// ═══════════════════════════════════════════════════════
+const PASSKEY = 'ROYAL@1982';
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat'];
+
+let db = {
+  staff: [],
+  classes: [],
+  periods: [],
+  timetable: {}, // {classId: {Mon: {1: {staffId, subject}}, ...}}
+  leaves: {},    // {dateStr: [staffId, ...]}
+  subs: {},      // {dateStr: {absentId_classId_pnum: subStaffId}}
+  classBreaks: {} // {classId: [{type, start, end}]}
+};
+
+function todayStr() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function todayDay() {
+  const d = new Date().getDay();
+  return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d];
+}
+
+function fmt12(time24) {
+  if(!time24) return '';
+  const [h,m] = time24.split(':').map(Number);
+  const suffix = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return h12 + ':' + String(m).padStart(2,'0') + ' ' + suffix;
+}
+
+function addMinutes(time24, mins) {
+  const [h,m] = time24.split(':').map(Number);
+  const total = h*60 + m + mins;
+  return String(Math.floor(total/60)).padStart(2,'0') + ':' + String(total%60).padStart(2,'0');
+}
+
+function timeToMins(t) {
+  const [h,m] = (t||'00:00').split(':').map(Number); return h*60+m;
+}
+
+function loadData() {
+  const saved = localStorage.getItem('rgi_timetable_v2');
+  if(saved) {
+    try {
+      db = JSON.parse(saved);
+      if(!db.classBreaks) db.classBreaks = {};
+    } catch(e) {}
+  } else {
+    seedData();
+  }
+}
+
+function saveData() {
+  localStorage.setItem('rgi_timetable_v2', JSON.stringify(db));
+}
+
+function seedData() {
+  db.staff = [
+    {id:'s1', name:'Mrs. Anitha Rajan', designation:'PGT English', subjects:['English']},
+    {id:'s2', name:'Mr. Suresh Kumar', designation:'PGT Mathematics', subjects:['Mathematics']},
+    {id:'s3', name:'Mrs. Priya Menon', designation:'PGT Science', subjects:['Physics','Chemistry']},
+    {id:'s4', name:'Mr. Vijay Chandran', designation:'PGT Social Science', subjects:['History','Geography']},
+    {id:'s5', name:'Mrs. Lakshmi Nair', designation:'PGT Tamil', subjects:['Tamil']},
+    {id:'s6', name:'Mr. Balamurugan', designation:'TGT Computer Science', subjects:['Computer Science']},
+  ];
+  db.classes = [
+    {id:'c1', name:'Class 6A', classTeacherId:'s1'},
+    {id:'c2', name:'Class 7B', classTeacherId:'s2'},
+    {id:'c3', name:'Class 8A', classTeacherId:'s3'},
+  ];
+  db.periods = [
+    {num:1, start:'08:30', end:'09:15', type:'period'},
+    {num:2, start:'09:15', end:'10:00', type:'period'},
+    {num:3, start:'10:00', end:'10:45', type:'period'},
+    {num:0, start:'10:45', end:'11:00', type:'break'},
+    {num:4, start:'11:00', end:'11:45', type:'period'},
+    {num:5, start:'11:45', end:'12:30', type:'period'},
+    {num:0, start:'12:30', end:'13:15', type:'lunch'},
+    {num:6, start:'13:15', end:'14:00', type:'period'},
+    {num:7, start:'14:00', end:'14:45', type:'period'},
+    {num:8, start:'14:45', end:'15:30', type:'period'},
+  ];
+  // Seed timetable for Class 6A
+  db.timetable['c1'] = {};
+  const c1map = {
+    Mon:  {1:'s1',2:'s2',3:'s3',4:'s4',5:'s5',6:'s6',7:'s1',8:'s2'},
+    Tue:  {1:'s2',2:'s3',3:'s4',4:'s5',5:'s6',6:'s1',7:'s2',8:'s3'},
+    Wed:  {1:'s3',2:'s4',3:'s5',4:'s6',5:'s1',6:'s2',7:'s3',8:'s4'},
+    Thu:  {1:'s4',2:'s5',3:'s6',4:'s1',5:'s2',6:'s3',7:'s4',8:'s5'},
+    Fri:  {1:'s5',2:'s6',3:'s1',4:'s2',5:'s3',6:'s4',7:'s5',8:'s6'},
+    Sat:  {1:'s6',2:'s1',3:'s2',4:'s3',5:'s4',6:'s5',7:'s6',8:'s1'},
+  };
+  DAYS.forEach(day => {
+    db.timetable['c1'][day] = {};
+    for(let p=1;p<=8;p++) {
+      const sid = c1map[day][p];
+      const staff = db.staff.find(s=>s.id===sid);
+      db.timetable['c1'][day][p] = {staffId: sid, subject: staff ? staff.subjects[0] : ''};
+    }
+  });
+  // Seed timetable for Class 7B
+  db.timetable['c2'] = {};
+  const c2map = {
+    Mon:  {1:'s2',2:'s1',3:'s4',4:'s3',5:'s6',6:'s5',7:'s2',8:'s3'},
+    Tue:  {1:'s3',2:'s2',3:'s5',4:'s4',5:'s1',6:'s6',7:'s3',8:'s4'},
+    Wed:  {1:'s4',2:'s3',3:'s6',4:'s5',5:'s2',6:'s1',7:'s4',8:'s5'},
+    Thu:  {1:'s5',2:'s4',3:'s1',4:'s6',5:'s3',6:'s2',7:'s5',8:'s6'},
+    Fri:  {1:'s6',2:'s5',3:'s2',4:'s1',5:'s4',6:'s3',7:'s6',8:'s1'},
+    Sat:  {1:'s1',2:'s6',3:'s3',4:'s2',5:'s5',6:'s4',7:'s1',8:'s2'},
+  };
+  DAYS.forEach(day => {
+    db.timetable['c2'][day] = {};
+    for(let p=1;p<=8;p++) {
+      const sid = c2map[day][p];
+      const staff = db.staff.find(s=>s.id===sid);
+      db.timetable['c2'][day][p] = {staffId: sid, subject: staff ? staff.subjects[0] : ''};
+    }
+  });
+  saveData();
+}
+
+// ═══════════════════════════════════════════════════════
+// DATA LAYER
+// ═══════════════════════════════════════════════════════
+function isAdmin() { return sessionStorage.getItem('rgi_admin') === '1'; }
+
+function openLogin() {
+  document.getElementById('login-modal').classList.add('open');
+  document.getElementById('passkey-input').value = '';
+  document.getElementById('login-error').classList.add('hidden');
+  setTimeout(() => document.getElementById('passkey-input').focus(), 100);
+}
+function closeLogin() { document.getElementById('login-modal').classList.remove('open'); }
+
+function doLogin() {
+  const val = document.getElementById('passkey-input').value;
+  if(val === PASSKEY) {
+    sessionStorage.setItem('rgi_admin','1');
+    closeLogin();
+    updateAdminUI();
+    showPage('home');
+  } else {
+    document.getElementById('login-error').classList.remove('hidden');
+  }
+}
+
+function logout() {
+  sessionStorage.removeItem('rgi_admin');
+  updateAdminUI();
+  showPage('home');
+}
+
+function updateAdminUI() {
+  const admin = isAdmin();
+  document.getElementById('admin-badge').classList.toggle('hidden', !admin);
+  document.getElementById('btn-logout').classList.toggle('hidden', !admin);
+  document.getElementById('btn-admin-login').classList.toggle('hidden', admin);
+  document.querySelectorAll('.admin-only').forEach(el => el.style.display = admin ? '' : 'none');
+  const dash = document.getElementById('admin-dashboard');
+  if(dash) dash.classList.toggle('hidden', !admin);
+}
+
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    if(b.getAttribute('onclick') && b.getAttribute('onclick').includes("'"+id+"'")) b.classList.add('active');
+  });
+  // Page-specific renders
+  if(id==='home') renderHome();
+  if(id==='teacher-view') { populateTeacherSelect(); renderTeacherTimetable(); }
+  if(id==='class-view') { populateClassSelect(); renderClassTimetable(); }
+  if(id==='leave-view') { const p=document.getElementById('lv-date-picker'); if(p&&!p.value) p.value=todayStr(); renderLeaveView(); }
+  if(id==='manage-staff') renderStaffTable();
+  if(id==='manage-classes') { renderClassesTable(); populateClassTeacherSelect(); }
+  if(id==='manage-periods') renderPeriodsEditor();
+  if(id==='assign-timetable') { populateTTClassSelect(); loadTimetableEditor(); }
+  if(id==='mark-leave') { renderMarkLeave(); }
+  if(id==='substitutions') { const p=document.getElementById('sub-date-picker'); if(p&&!p.value) p.value=todayStr(); renderSubstitutions(); }
+}
+
+// ═══════════════════════════════════════════════════════
+// HOME
+// ═══════════════════════════════════════════════════════
+function renderHome() {
+  const now = new Date();
+  document.getElementById('home-date').textContent = now.toLocaleDateString('en-IN', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+  const today = todayStr();
+  const onLeave = (db.leaves[today] || []).length;
+  const totalStaff = db.staff.length;
+  const totalClasses = db.classes.length;
+  document.getElementById('home-stats').innerHTML = `
+    <div class="stat-card accent-blue"><div class="stat-label">Total Staff</div><div class="stat-value">${totalStaff}</div></div>
+    <div class="stat-card accent-red"><div class="stat-label">On Leave Today</div><div class="stat-value">${onLeave}</div></div>
+    <div class="stat-card accent-green"><div class="stat-label">Classes</div><div class="stat-value">${totalClasses}</div></div>
+    <div class="stat-card accent-gold"><div class="stat-label">Periods/Day</div><div class="stat-value">${db.periods.length}</div></div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════
+// TEACHER TIMETABLE VIEW
+// ═══════════════════════════════════════════════════════
+function populateTeacherSelect() {
+  const sel = document.getElementById('tv-teacher-select');
+  sel.innerHTML = '<option value="">-- Select Teacher --</option>' + db.staff.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+}
+
+function renderTeacherTimetable() {
+  const sid = document.getElementById('tv-teacher-select').value;
+  const out = document.getElementById('tv-output');
+  const hdr = document.getElementById('print-teacher-header');
+  if(!sid) { out.innerHTML = '<div class="alert alert-info">Please select a teacher to view their timetable.</div>'; hdr.innerHTML=''; return; }
+
+  // Date picker — default to today
+  const picker = document.getElementById('tv-date-picker');
+  if(!picker.value) picker.value = todayStr();
+  const viewDate = picker.value;
+  const viewObj = new Date(viewDate + 'T00:00:00');
+  const viewDayKey = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][viewObj.getDay()];
+  const isToday = viewDate === todayStr();
+  const dateLabelShort = viewObj.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+
+  const staff = db.staff.find(s=>s.id===sid);
+  hdr.innerHTML = `<h2>RGI School — Teacher Timetable</h2><p>${staff.name} &nbsp;|&nbsp; ${new Date().toLocaleDateString('en-IN')}</p>`;
+
+  // Subs and leave for the VIEWED date
+  const viewSubs = db.subs[viewDate] || {};
+  const onLeaveView = new Set(db.leaves[viewDate] || []);
+  const isAbsentView = onLeaveView.has(sid);
+
+  // Count substitutions assigned to this staff on viewed date
+  let subCount = 0;
+  const subAssigned = {};
+  Object.entries(viewSubs).forEach(([key, subId]) => {
+    if(subId !== sid) return;
+    subCount++;
+    const parts = key.split('_');
+    const pnum = parseInt(parts[parts.length-1]);
+    const clsId = parts[parts.length-2];
+    const absentId = parts.slice(0, parts.length-2).join('_');
+    const cls = db.classes.find(c=>c.id===clsId);
+    const absentStaff = db.staff.find(s=>s.id===absentId);
+    const entry = db.timetable[clsId]?.[viewDayKey]?.[pnum];
+    subAssigned[`${pnum}_${clsId}`] = {cls, absentStaff, subject: entry?.subject||''};
+  });
+
+  let html = '';
+  if(isAbsentView) {
+    html += `<div class="alert alert-danger" style="margin-bottom:14px">🔴 This staff is marked absent on ${dateLabelShort}.</div>`;
+  } else if(subCount > 0) {
+    const countColor = subCount >= 3 ? 'var(--red)' : subCount >= 2 ? 'var(--orange)' : 'var(--green)';
+    html += `<div style="background:var(--off-white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span style="font-size:13px;color:var(--gray-600)">Substitution duty on ${dateLabelShort}:</span>
+      <span style="font-size:20px;font-weight:600;color:${countColor}">${subCount}</span>
+      <span style="font-size:13px;color:var(--gray-600)">period${subCount>1?'s':''}</span>
+    </div>`;
+  }
+
+  const periods = [...db.periods].sort((a,b)=>a.start.localeCompare(b.start));
+  html += '<div class="table-wrap"><table class="timetable-table"><thead><tr><th>Period</th>';
+  DAYS.forEach(d => {
+    const isViewed = d === viewDayKey;
+    html += `<th class="${isViewed?'today-col':''}">${d}${isViewed?' ★':''}</th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  periods.forEach(p => {
+    if(p.type === 'lunch') {
+      html += `<tr style="background:#fff8e1"><td colspan="${DAYS.length+1}" style="text-align:center;font-size:13px;font-weight:500;color:#795548;padding:6px">🍽 Lunch Break — ${fmt12(p.start)} to ${fmt12(p.end)}</td></tr>`;
+      return;
+    }
+    if(p.type === 'break') {
+      html += `<tr style="background:#f3e5f5"><td colspan="${DAYS.length+1}" style="text-align:center;font-size:13px;font-weight:500;color:#6a1b9a;padding:6px">☕ Short Break — ${fmt12(p.start)} to ${fmt12(p.end)}</td></tr>`;
+      return;
+    }
+    html += `<tr><td><strong>P${p.num}</strong><br><span class="text-muted text-sm">${fmt12(p.start)}</span></td>`;
+    DAYS.forEach(d => {
+      const isViewed = d === viewDayKey;
+      let cell = '', isSub = false;
+      for(const cls of db.classes) {
+        const entry = db.timetable[cls.id]?.[d]?.[p.num];
+        if(entry && entry.staffId === sid)
+          cell = `<div class="cell-subject">${entry.subject||''}</div><div class="cell-teacher">${cls.name}</div>`;
+      }
+      if(isViewed) {
+        const subMatch = Object.entries(subAssigned).find(([k]) => k.startsWith(p.num + '_'));
+        if(subMatch) {
+          const si = subMatch[1];
+          cell = `<div class="cell-subject" style="color:var(--orange)">📌 ${si.subject||'Sub'}</div>
+                  <div class="cell-teacher" style="color:var(--orange);font-style:italic">${si.cls?.name||''}</div>
+                  <div class="cell-teacher" style="color:var(--gray-400);font-size:11px">for ${si.absentStaff?.name||'absent'}</div>`;
+          isSub = true;
+        }
+      }
+      html += `<td class="${isViewed?'today-col':''}" style="${isSub?'background:#fff3e0;border-color:#ffcc80;':''}">${cell||'<span class="text-muted">—</span>'}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table></div>';
+  html += `<div style="display:flex;gap:16px;margin-top:12px;font-size:13px;flex-wrap:wrap">
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:14px;height:14px;background:var(--sky);border:1px solid var(--blue-light);border-radius:3px"></span>Selected date column (${dateLabelShort})</span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:14px;height:14px;background:#fff3e0;border:1px solid #ffcc80;border-radius:3px"></span>📌 Substitution duty</span>
+  </div>`;
+  out.innerHTML = html;
+}
+
+
+// ═══════════════════════════════════════════════════════
+// CLASS TIMETABLE VIEW
+// ═══════════════════════════════════════════════════════
+function populateClassSelect() {
+  const opts = db.classes.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  document.getElementById('cv-class-select').innerHTML = '<option value="">-- Select Class --</option>' + opts;
+  document.getElementById('cv-multi-select').innerHTML = opts;
+}
+
+function renderClassTimetable() {
+  const mode = document.getElementById('cv-mode').value;
+  document.getElementById('cv-single-wrap').style.display = mode==='single' ? '' : 'none';
+  document.getElementById('cv-multi-wrap').style.display  = mode==='multi'  ? '' : 'none';
+
+  let classIds = [];
+  if(mode==='single') {
+    const v = document.getElementById('cv-class-select').value;
+    if(v) classIds = [v];
+  } else if(mode==='all') {
+    classIds = db.classes.map(c=>c.id);
+  } else {
+    classIds = [...document.getElementById('cv-multi-select').selectedOptions].map(o=>o.value);
+  }
+
+  const out = document.getElementById('cv-output');
+  const hdr = document.getElementById('print-class-header');
+  if(!classIds.length) {
+    out.innerHTML = '<div class="alert alert-info">Please select a class to view its timetable.</div>';
+    hdr.innerHTML = ''; return;
+  }
+
+  // Date picker
+  const picker = document.getElementById('cv-date-picker');
+  if(!picker.value) picker.value = todayStr();
+  const viewDate = picker.value;
+  const viewObj = new Date(viewDate + 'T00:00:00');
+  const viewDayKey = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][viewObj.getDay()];
+  const dateLabelShort = viewObj.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+
+  const viewSubs = db.subs[viewDate] || {};
+  const onLeaveView = new Set(db.leaves[viewDate] || []);
+
+  const names = classIds.map(id => db.classes.find(c=>c.id===id)?.name).join(', ');
+  hdr.innerHTML = `<h2>RGI School — Class Timetable</h2><p>${names} &nbsp;|&nbsp; ${viewObj.toLocaleDateString('en-IN')}</p>`;
+
+  // Global periods (only period type)
+  const globalPeriods = [...db.periods].sort((a,b)=>a.start.localeCompare(b.start));
+
+  let html = '';
+  classIds.forEach(cid => {
+    const cls = db.classes.find(c=>c.id===cid);
+    if(!cls) return;
+    const tt = db.timetable[cid] || {};
+    if(classIds.length > 1) html += `<div style="font-family:'EB Garamond',serif;font-size:18px;font-weight:500;color:var(--navy);margin:20px 0 8px">${cls.name}</div>`;
+
+    // Class-specific breaks merged with global periods into a sorted timeline
+    const classBreaks = (db.classBreaks||{})[cid] || [];
+    // Build global breaks (from periods list)
+    const globalBreaks = db.periods.filter(p=>p.type==='lunch'||p.type==='break');
+    // Effective breaks = class-specific if set, else global
+    const effectiveBreaks = classBreaks.length ? classBreaks : globalBreaks;
+    // Build timeline: periods + effective breaks sorted by start
+    const timeline = [
+      ...db.periods.filter(p=>p.type==='period'||!p.type),
+      ...effectiveBreaks
+    ].sort((a,b)=>a.start.localeCompare(b.start));
+
+    html += '<div class="table-wrap"><table class="timetable-table"><thead><tr><th>Period / Time</th>';
+    DAYS.forEach(d => {
+      const isViewed = d === viewDayKey;
+      html += `<th class="${isViewed?'today-col':''}">${d}${isViewed?` ★ <span style="font-size:10px;font-weight:400">${dateLabelShort}</span>`:''}`;
+      html += '</th>';
+    });
+    html += '</tr></thead><tbody>';
+
+    timeline.forEach(p => {
+      if(p.type === 'lunch') {
+        html += `<tr style="background:#fff8e1"><td colspan="${DAYS.length+1}" style="text-align:center;font-weight:500;color:#795548;font-size:13px;padding:6px">🍽 Lunch Break &nbsp; ${fmt12(p.start)} – ${fmt12(p.end)}</td></tr>`;
+        return;
+      }
+      if(p.type === 'break') {
+        html += `<tr style="background:#f3e5f5"><td colspan="${DAYS.length+1}" style="text-align:center;font-weight:500;color:#6a1b9a;font-size:13px;padding:6px">☕ Break / Interval &nbsp; ${fmt12(p.start)} – ${fmt12(p.end)}</td></tr>`;
+        return;
+      }
+
+      html += `<tr><td><strong>P${p.num}</strong><br><span class="text-muted text-sm">${fmt12(p.start)}</span></td>`;
+      DAYS.forEach(d => {
+        const isViewed = d === viewDayKey;
+        const entry = tt[d]?.[p.num];
+        let cell = '<span class="text-muted">—</span>';
+        let isSub = false;
+
+        if(entry && entry.staffId) {
+          const staff = db.staff.find(s=>s.id===entry.staffId);
+          const staffName = staff ? staff.name : '';
+
+          if(isViewed && onLeaveView.has(entry.staffId)) {
+            const subKey = `${entry.staffId}_${cid}_${p.num}`;
+            const subId = viewSubs[subKey];
+            const subStaff = subId ? db.staff.find(s=>s.id===subId) : null;
+            isSub = true;
+            if(subStaff) {
+              cell = `<div class="cell-subject" style="color:var(--orange)">${entry.subject||''}</div>
+                      <div class="cell-teacher" style="color:#999;text-decoration:line-through;font-size:11px">${staffName}</div>
+                      <div class="cell-teacher" style="color:var(--orange);font-weight:500">📌 ${subStaff.name}</div>`;
+            } else {
+              cell = `<div class="cell-subject" style="color:var(--red)">${entry.subject||''}</div>
+                      <div class="cell-teacher" style="color:var(--red);text-decoration:line-through">${staffName}</div>
+                      <div class="cell-teacher" style="color:var(--red);font-size:11px">⚠ No sub assigned</div>`;
+            }
+          } else {
+            cell = `<div class="cell-subject">${entry.subject||''}</div><div class="cell-teacher">${staffName}</div>`;
+          }
+        }
+        html += `<td class="${isViewed?'today-col':''}" style="${isSub?'background:#fff3e0;border-color:#ffcc80;':''}">${cell}</td>`;
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    if(classIds.length > 1) html += '<hr style="margin:16px 0">';
+  });
+
+  html += `<div style="display:flex;gap:16px;margin-top:12px;font-size:13px;flex-wrap:wrap" class="no-print">
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:14px;height:14px;background:var(--sky);border:1px solid var(--blue-light);border-radius:3px"></span>Selected date (${dateLabelShort})</span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:14px;height:14px;background:#fff3e0;border:1px solid #ffcc80;border-radius:3px"></span>Substitute assigned</span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:14px;height:14px;background:var(--red-light);border:1px solid #ffcdd2;border-radius:3px"></span>No sub — needs cover</span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:14px;height:14px;background:#fff8e1;border-radius:3px"></span>Lunch break</span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:14px;height:14px;background:#f3e5f5;border-radius:3px"></span>Short break</span>
+  </div>`;
+
+  out.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════
+// LEAVE VIEW
+// ═══════════════════════════════════════════════════════
+function renderLeaveView() {
+  const picker = document.getElementById('lv-date-picker');
+  if(!picker.value) picker.value = todayStr();
+  const dateStr = picker.value;
+  const dateObj = new Date(dateStr + 'T00:00:00');
+  const dayIdx = dateObj.getDay();
+  const dayMap = {0:'Sun',1:'Mon',2:'Tue',3:'Wed',4:'Thu',5:'Fri',6:'Sat'};
+  const dayKey = dayMap[dayIdx];
+  const dateLabel = dateObj.toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const onLeave = db.leaves[dateStr] || [];
+  const subs = db.subs[dateStr] || {};
+  let html = `<p class="text-sm text-muted mb-16">${dateLabel}</p>`;
+  if(!onLeave.length) {
+    html += '<div class="alert alert-success">No staff on leave for this date.</div>';
+  } else {
+    html += `<div class="alert alert-warning">${onLeave.length} staff member(s) absent on this date.</div>`;
+    onLeave.forEach(sid => {
+      const staff = db.staff.find(s=>s.id===sid);
+      if(!staff) return;
+      html += `<div class="sub-card"><div class="sub-card-title">🔴 ${staff.name} <span style="font-weight:400;font-size:13px">(${staff.designation||''})</span></div>`;
+      let hasPeriods = false;
+      db.classes.forEach(cls => {
+        const tt = db.timetable[cls.id]?.[dayKey];
+        if(!tt) return;
+        db.periods.filter(p=>p.type==='period'||!p.type).forEach(p => {
+          const entry = tt[p.num];
+          if(entry && entry.staffId === sid) {
+            hasPeriods = true;
+            // Key format: absentStaffId_classId_periodNum
+            const key = `${sid}_${cls.id}_${p.num}`;
+            const subId = subs[key];
+            const subStaff = subId ? db.staff.find(s=>s.id===subId) : null;
+            html += `<div class="sub-period">
+              <div class="sub-period-info">
+                <strong>P${p.num} (${fmt12(p.start)})</strong> — ${cls.name}: ${entry.subject||''}
+              </div>
+              ${subStaff
+                ? `<span class="badge badge-subbed">Sub: ${subStaff.name}</span>`
+                : '<span class="badge" style="background:#f5f5f5;color:#999">No substitute assigned</span>'}
+            </div>`;
+          }
+        });
+      });
+      if(!hasPeriods) html += `<div class="text-muted text-sm" style="padding:8px">No scheduled periods on ${dayKey}.</div>`;
+      html += '</div>';
+    });
+  }
+  document.getElementById('lv-output').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════
+// MANAGE STAFF
+// ═══════════════════════════════════════════════════════
+function saveStaff() {
+  const name = document.getElementById('staff-name').value.trim();
+  const desig = document.getElementById('staff-desig').value.trim();
+  const subjects = document.getElementById('staff-subjects').value.split(',').map(s=>s.trim()).filter(Boolean);
+  if(!name) { alert('Staff name is required.'); return; }
+  db.staff.push({id:'s'+Date.now(), name, designation:desig, subjects});
+  saveData();
+  document.getElementById('staff-name').value = '';
+  document.getElementById('staff-desig').value = '';
+  document.getElementById('staff-subjects').value = '';
+  renderStaffTable();
+}
+
+function renderStaffTable() {
+  const tbody = document.getElementById('staff-tbody');
+  if(!db.staff.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-muted" style="text-align:center">No staff added yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = db.staff.map((s,i) => {
+    const eid = CSS.escape(s.id);
+    return `<tr id="staff-row-${eid}">
+      <td>${i+1}</td>
+      <td><strong>${s.name}</strong></td>
+      <td>${s.designation||'—'}</td>
+      <td>${(s.subjects||[]).join(', ')||'—'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-secondary btn-sm" onclick="editStaff('${s.id}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="confirmDeleteStaff('${s.id}','${s.name.replace(/'/g,'')}')">Delete</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function confirmDeleteStaff(id, name) {
+  const existing = document.getElementById('staff-del-confirm');
+  if(existing) existing.remove();
+  const row = document.getElementById('staff-row-' + CSS.escape(id));
+  if(!row) return;
+  const conf = document.createElement('tr');
+  conf.id = 'staff-del-confirm';
+  conf.innerHTML = `<td colspan="5" style="background:var(--red-light);padding:10px 16px;border:1px solid #ffcdd2">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span style="color:var(--red);font-weight:500">Delete <em>${name}</em>? This cannot be undone.</span>
+      <button class="btn btn-danger btn-sm" onclick="deleteStaff('${id}')">Yes, Delete</button>
+      <button class="btn btn-secondary btn-sm" onclick="document.getElementById('staff-del-confirm').remove()">Cancel</button>
+    </div>
+  </td>`;
+  row.after(conf);
+}
+
+function editStaff(id) {
+  const s = db.staff.find(x=>x.id===id);
+  if(!s) return;
+  document.getElementById('edit-staff-name').value = s.name;
+  document.getElementById('edit-staff-desig').value = s.designation||'';
+  document.getElementById('edit-staff-subjects').value = (s.subjects||[]).join(', ');
+  document.getElementById('edit-staff-id').value = id;
+  document.getElementById('staff-edit-form').classList.remove('hidden');
+}
+
+function cancelEditStaff() { document.getElementById('staff-edit-form').classList.add('hidden'); }
+
+function updateStaff() {
+  const id = document.getElementById('edit-staff-id').value;
+  const s = db.staff.find(x=>x.id===id);
+  if(!s) return;
+  s.name = document.getElementById('edit-staff-name').value.trim();
+  s.designation = document.getElementById('edit-staff-desig').value.trim();
+  s.subjects = document.getElementById('edit-staff-subjects').value.split(',').map(x=>x.trim()).filter(Boolean);
+  saveData();
+  cancelEditStaff();
+  renderStaffTable();
+}
+
+function deleteStaff(id) {
+  const conf = document.getElementById('staff-del-confirm');
+  if(conf) conf.remove();
+  db.staff = db.staff.filter(s=>s.id!==id);
+  // Remove from class teacher assignments
+  db.classes.forEach(c => { if(c.classTeacherId===id) c.classTeacherId=''; });
+  saveData();
+  renderStaffTable();
+}
+
+// ═══════════════════════════════════════════════════════
+// MANAGE CLASSES
+// ═══════════════════════════════════════════════════════
+function populateClassTeacherSelect() {
+  const sel = document.getElementById('class-teacher-select');
+  sel.innerHTML = '<option value="">-- No Class Teacher --</option>' + db.staff.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+}
+
+function saveClass() {
+  const name = document.getElementById('class-name').value.trim();
+  const tid = document.getElementById('class-teacher-select').value;
+  if(!name) { showToast('Class name is required.','danger'); return; }
+  if(tid) {
+    const already = db.classes.find(c=>c.classTeacherId===tid);
+    if(already) {
+      const t = db.staff.find(s=>s.id===tid);
+      showToast((t?t.name:'This teacher')+' is already class teacher of '+already.name+'. Please choose a different teacher.','danger');
+      return;
+    }
+  }
+  db.classes.push({id:'c'+Date.now(), name, classTeacherId:tid});
+  saveData();
+  document.getElementById('class-name').value = '';
+  renderClassesTable();
+  showToast('Class "'+name+'" added.','success');
+}
+
+function renderClassesTable() {
+  const tbody = document.getElementById('classes-tbody');
+  if(!db.classes.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-muted" style="text-align:center">No classes added yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = db.classes.map((c,i) => {
+    const ct = db.staff.find(s=>s.id===c.classTeacherId);
+    const breaks = (db.classBreaks||{})[c.id] || [];
+    const breakLabel = breaks.length
+      ? breaks.map(b=>`${b.type==='lunch'?'🍽':'☕'} ${fmt12(b.start)}–${fmt12(b.end)}`).join(', ')
+      : '<span class="text-muted" style="font-size:12px">Global defaults</span>';
+    return `<tr id="cls-row-${c.id}">
+      <td>${i+1}</td>
+      <td><strong>${c.name}</strong></td>
+      <td id="cls-ct-${c.id}">${ct?ct.name:'—'}</td>
+      <td style="font-size:12px">${breakLabel}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-secondary btn-sm" data-edit-cls="${c.id}">Edit Teacher</button>
+        <button class="btn btn-secondary btn-sm" data-edit-brk="${c.id}" style="--card-accent:#6a1b9a">Breaks</button>
+        <button class="btn btn-danger btn-sm" data-del-cls="${c.id}">Delete</button>
+      </td>
+    </tr>`;
+  }).join('');
+  tbody.querySelectorAll('[data-edit-cls]').forEach(btn => btn.onclick = () => editClassTeacher(btn.dataset.editCls));
+  tbody.querySelectorAll('[data-edit-brk]').forEach(btn => btn.onclick = () => editClassBreaks(btn.dataset.editBrk));
+  tbody.querySelectorAll('[data-del-cls]').forEach(btn => btn.onclick = () => deleteClass(btn.dataset.delCls));
+}
+
+function editClassTeacher(cid) {
+  // Remove any existing inline edit rows first
+  const existing = document.getElementById('cls-edit-row');
+  if(existing) existing.remove();
+  const c = db.classes.find(x=>x.id===cid);
+  if(!c) return;
+  const staffOpts = db.staff.map(s=>`<option value="${s.id}" ${c.classTeacherId===s.id?'selected':''}>${s.name}</option>`).join('');
+  const row = document.createElement('tr');
+  row.id = 'cls-edit-row';
+  row.innerHTML = `<td colspan="4" style="background:var(--sky);padding:12px 16px">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="font-weight:500;color:var(--navy)">${c.name} — Change Class Teacher:</span>
+      <select id="cls-edit-teacher" style="flex:1;min-width:160px;max-width:300px">
+        <option value="">— No Class Teacher —</option>${staffOpts}
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="saveClassTeacher('${cid}')">Save</button>
+      <button class="btn btn-secondary btn-sm" onclick="document.getElementById('cls-edit-row').remove()">Cancel</button>
+    </div>
+  </td>`;
+  const targetRow = document.getElementById('cls-row-' + cid);
+  targetRow.after(row);
+}
+
+function saveClassTeacher(cid) {
+  const c = db.classes.find(x=>x.id===cid);
+  if(!c) return;
+  const tid = document.getElementById('cls-edit-teacher').value;
+  if(tid) {
+    const already = db.classes.find(cl=>cl.classTeacherId===tid && cl.id!==cid);
+    if(already) {
+      const t = db.staff.find(s=>s.id===tid);
+      showToast((t?t.name:'This teacher')+' is already class teacher of '+already.name+'. Choose a different teacher.','danger');
+      return;
+    }
+  }
+  c.classTeacherId = tid;
+  saveData();
+  const existing = document.getElementById('cls-edit-row');
+  if(existing) existing.remove();
+  renderClassesTable();
+  showToast('Class teacher updated.','success');
+}
+
+function editClassBreaks(cid) {
+  const existing = document.getElementById('cls-brk-row');
+  if(existing) existing.remove();
+  const c = db.classes.find(x=>x.id===cid);
+  if(!c) return;
+  if(!db.classBreaks) db.classBreaks = {};
+  const breaks = db.classBreaks[cid] || [];
+  let brklist = breaks.map((b,i) =>
+    `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+      <span style="font-size:12px;background:${b.type==='lunch'?'#fff8e1':'#f3e5f5'};padding:2px 8px;border-radius:10px;color:${b.type==='lunch'?'#795548':'#6a1b9a'}">${b.type==='lunch'?'🍽 Lunch':'☕ Break'}</span>
+      <input type="time" value="${b.start}" id="cb-s-${cid}-${i}" style="width:110px">
+      <span>–</span>
+      <input type="time" value="${b.end}" id="cb-e-${cid}-${i}" style="width:110px">
+      <button class="btn btn-danger btn-sm" onclick="removeClassBreak('${cid}',${i})">✕</button>
+    </div>`).join('');
+  const row = document.createElement('tr');
+  row.id = 'cls-brk-row';
+  row.innerHTML = `<td colspan="5" style="background:#f3e5f5;padding:14px 16px;border:1px solid #e1bee7">
+    <div style="font-weight:600;color:#4a148c;margin-bottom:10px">${c.name} — Custom Break Times</div>
+    <div id="cls-brk-list">${brklist||'<div class="text-muted text-sm">No custom breaks. Add below or use global defaults.</div>'}</div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px">
+      <select id="cb-type-${cid}" style="width:140px">
+        <option value="lunch">🍽 Lunch Break</option>
+        <option value="break">☕ Short Break</option>
+      </select>
+      <input type="time" id="cb-start-${cid}" value="12:30" style="width:110px">
+      <span>–</span>
+      <input type="time" id="cb-end-${cid}" value="13:15" style="width:110px">
+      <button class="btn btn-primary btn-sm" onclick="addClassBreak('${cid}')">+ Add</button>
+      <button class="btn btn-gold btn-sm" onclick="saveClassBreaks('${cid}')">💾 Save</button>
+      <button class="btn btn-secondary btn-sm" onclick="document.getElementById('cls-brk-row').remove()">Cancel</button>
+    </div>
+  </td>`;
+  document.getElementById('cls-row-'+cid).after(row);
+}
+
+function addClassBreak(cid) {
+  if(!db.classBreaks) db.classBreaks = {};
+  if(!db.classBreaks[cid]) db.classBreaks[cid] = [];
+  const type = document.getElementById('cb-type-'+cid).value;
+  const start = document.getElementById('cb-start-'+cid).value;
+  const end = document.getElementById('cb-end-'+cid).value;
+  if(!start||!end||start>=end){showToast('Invalid break time.','danger');return;}
+  db.classBreaks[cid].push({type,start,end});
+  editClassBreaks(cid); // re-render inline editor
+}
+
+function removeClassBreak(cid, idx) {
+  if(!db.classBreaks||!db.classBreaks[cid]) return;
+  db.classBreaks[cid].splice(idx,1);
+  editClassBreaks(cid);
+}
+
+function saveClassBreaks(cid) {
+  if(!db.classBreaks) db.classBreaks = {};
+  // Collect any edits from inputs
+  const breaks = db.classBreaks[cid] || [];
+  breaks.forEach((b,i) => {
+    const s = document.getElementById(`cb-s-${cid}-${i}`);
+    const e = document.getElementById(`cb-e-${cid}-${i}`);
+    if(s) b.start = s.value;
+    if(e) b.end = e.value;
+  });
+  saveData();
+  document.getElementById('cls-brk-row')?.remove();
+  renderClassesTable();
+  showToast('Break times saved for this class.','success');
+}
+
+function deleteClass(id) {
+  if(!confirm('Delete this class?')) return;
+  db.classes = db.classes.filter(c=>c.id!==id);
+  delete db.timetable[id];
+  saveData();
+  renderClassesTable();
+}
+
+// ═══════════════════════════════════════════════════════
+// PERIODS
+// ═══════════════════════════════════════════════════════
+function renderPeriodsEditor() {
+  const list = document.getElementById('periods-list');
+  if(!db.periods.length) { list.innerHTML = '<div class="alert alert-info">Generate periods using the form above.</div>'; return; }
+
+  // Sort by start time
+  const sorted = [...db.periods].sort((a,b) => a.start.localeCompare(b.start));
+  let html = '';
+  sorted.forEach((p, idx) => {
+    const isBreak = p.type === 'lunch' || p.type === 'break';
+    const bgColor = p.type==='lunch' ? '#fff8e1' : p.type==='break' ? '#f3e5f5' : 'white';
+    const label = p.type==='lunch' ? '🍽 Lunch Break' : p.type==='break' ? '☕ Short Break' : `Period ${p.num}`;
+    const badge = p.type==='lunch'
+      ? `<span style="font-size:11px;background:#fff8e1;color:#795548;border:1px solid #ffe082;border-radius:12px;padding:2px 8px">Lunch</span>`
+      : p.type==='break'
+      ? `<span style="font-size:11px;background:#f3e5f5;color:#6a1b9a;border:1px solid #e1bee7;border-radius:12px;padding:2px 8px">Break</span>`
+      : `<span style="font-size:11px;background:var(--sky);color:#0d47a1;border:1px solid var(--sky-mid);border-radius:12px;padding:2px 8px">Period</span>`;
+
+    html += `<div class="period-row" style="background:${bgColor};padding:8px 12px;border-radius:var(--radius);border:1px solid var(--gray-200);margin-bottom:6px">
+      <div class="period-num" style="background:${p.type==='lunch'?'#795548':p.type==='break'?'#6a1b9a':'var(--navy)'}">${isBreak ? (p.type==='lunch'?'L':'B') : p.num}</div>
+      <div style="min-width:100px;font-weight:500;font-size:14px">${label} ${badge}</div>
+      <div class="form-group" style="max-width:130px"><label>Start</label><input type="time" value="${p.start}" onchange="updatePeriodTime(${idx},'start',this.value)"></div>
+      <div class="form-group" style="max-width:130px"><label>End</label><input type="time" value="${p.end}" onchange="updatePeriodTime(${idx},'end',this.value)"></div>
+      <button class="btn btn-danger btn-sm" onclick="deletePeriodByIdx(${idx})">Remove</button>
+    </div>`;
+  });
+  list.innerHTML = html || '<div class="alert alert-info">No periods configured yet.</div>';
+}
+
+function updatePeriodTime(idx, field, val) {
+  const sorted = [...db.periods].sort((a,b)=>a.start.localeCompare(b.start));
+  const item = sorted[idx];
+  const orig = db.periods.find(p=>p.start===item.start && p.type===item.type && p.num===item.num);
+  if(orig) orig[field] = val;
+}
+
+function addBreak() {
+  const type = document.getElementById('break-type').value;
+  const start = document.getElementById('break-start').value;
+  const end = document.getElementById('break-end').value;
+  if(!start || !end) { showToast('Please set start and end time for the break.','danger'); return; }
+  if(start >= end) { showToast('Break end time must be after start time.','danger'); return; }
+
+  const breakDur = timeToMins(end) - timeToMins(start);
+
+  // Find periods that start at or after the break start — shift them forward by breakDur
+  // (so the break fits cleanly between periods without overlap)
+  const shifted = [];
+  db.periods.forEach(p => {
+    if((p.type==='period'||!p.type) && p.start >= start) {
+      p.start = addMinutes(p.start, breakDur);
+      p.end   = addMinutes(p.end,   breakDur);
+      shifted.push(p.num);
+    }
+  });
+
+  db.periods.push({num:0, start, end, type});
+  renumberPeriods();
+  renderPeriodsEditor();
+  const msg = (type==='lunch'?'🍽 Lunch break':'☕ Short break') + ' added.'
+    + (shifted.length ? ` Periods ${shifted.join(', ')} shifted forward by ${breakDur} min.` : '');
+  showToast(msg, 'success', 4500);
+}
+
+function renumberPeriods() {
+  // Sort all by start, assign num only to type=period entries
+  db.periods.sort((a,b)=>a.start.localeCompare(b.start));
+  let num = 1;
+  db.periods.forEach(p => {
+    if(!p.type || p.type==='period') { p.type='period'; p.num = num++; }
+    else { p.num = 0; }
+  });
+}
+
+function generatePeriods() {
+  const n = parseInt(document.getElementById('num-periods').value) || 8;
+  const start = document.getElementById('period-start').value || '08:30';
+  const dur = parseInt(document.getElementById('period-duration').value) || 45;
+  // Keep existing breaks, remove only period-type entries
+  db.periods = db.periods.filter(p => p.type==='lunch' || p.type==='break');
+  let t = start;
+  for(let i=1;i<=n;i++) {
+    const end = addMinutes(t, dur);
+    db.periods.push({num:i, start:t, end:end, type:'period'});
+    t = end;
+  }
+  renumberPeriods();
+  renderPeriodsEditor();
+}
+
+function deletePeriodByIdx(idx) {
+  const sorted = [...db.periods].sort((a,b)=>a.start.localeCompare(b.start));
+  const item = sorted[idx];
+  db.periods = db.periods.filter(p => !(p.start===item.start && p.type===item.type && p.num===item.num));
+  renumberPeriods();
+  renderPeriodsEditor();
+}
+
+function deletePeriod(num) {
+  db.periods = db.periods.filter(p=>p.num!==num || (p.type!=='period' && p.type!==undefined));
+  renumberPeriods();
+  renderPeriodsEditor();
+}
+
+function savePeriods() {
+  renumberPeriods();
+  saveData();
+  showToast('Periods and breaks saved successfully!', 'success');
+}
+
+// ═══════════════════════════════════════════════════════
+// ASSIGN TIMETABLE
+// ═══════════════════════════════════════════════════════
+function populateTTClassSelect() {
+  const sel = document.getElementById('tt-class-select');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">-- Select Class --</option>' + db.classes.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  if(prev) sel.value = prev;
+}
+
+function loadTimetableEditor() {
+  const cid = document.getElementById('tt-class-select').value;
+  const ed = document.getElementById('tt-editor');
+  if(!cid) { ed.innerHTML = '<div class="alert alert-info">Select a class to edit its timetable.</div>'; return; }
+  if(!db.timetable[cid]) db.timetable[cid] = {};
+  const tt = db.timetable[cid];
+  const periods = [...db.periods].sort((a,b)=>a.start.localeCompare(b.start));
+
+  let html = '<div class="tt-grid"><div class="table-wrap"><table class="timetable-table"><thead><tr><th>Period</th>';
+  DAYS.forEach(d => html += `<th>${d}</th>`);
+  html += '</tr></thead><tbody>';
+
+  periods.forEach(p => {
+    if(p.type === 'lunch') {
+      html += `<tr style="background:#fff8e1"><td colspan="${DAYS.length+1}" style="text-align:center;font-size:13px;font-weight:500;color:#795548;padding:6px">🍽 Lunch Break — ${fmt12(p.start)} to ${fmt12(p.end)}</td></tr>`;
+      return;
+    }
+    if(p.type === 'break') {
+      html += `<tr style="background:#f3e5f5"><td colspan="${DAYS.length+1}" style="text-align:center;font-size:13px;font-weight:500;color:#6a1b9a;padding:6px">☕ Short Break — ${fmt12(p.start)} to ${fmt12(p.end)}</td></tr>`;
+      return;
+    }
+    html += `<tr><td><strong>P${p.num}</strong><br><span class="text-muted text-sm">${fmt12(p.start)}–${fmt12(p.end)}</span></td>`;
+    DAYS.forEach(d => {
+      const entry = tt[d]?.[p.num] || {};
+      const staffOpts = db.staff.map(s=>`<option value="${s.id}" ${entry.staffId===s.id?'selected':''}>${s.name}</option>`).join('');
+      const subjectVal = entry.subject||'';
+      html += `<td style="padding:4px">
+        <select class="tt-cell-input" onchange="updateTTEntry('${cid}','${d}',${p.num},'staffId',this.value);autoFillSubject('${cid}','${d}',${p.num},this)">
+          <option value="">—</option>${staffOpts}
+        </select>
+        <input type="text" class="tt-cell-input" style="margin-top:3px" placeholder="Subject" value="${subjectVal}"
+          oninput="updateTTEntry('${cid}','${d}',${p.num},'subject',this.value)" id="subj_${cid}_${d}_${p.num}">
+      </td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table></div></div>';
+  ed.innerHTML = html;
+}
+
+function updateTTEntry(cid, day, pnum, field, val) {
+  if(!db.timetable[cid]) db.timetable[cid] = {};
+  if(!db.timetable[cid][day]) db.timetable[cid][day] = {};
+  if(!db.timetable[cid][day][pnum]) db.timetable[cid][day][pnum] = {};
+  db.timetable[cid][day][pnum][field] = val;
+}
+
+function autoFillSubject(cid, day, pnum, sel) {
+  const sid = sel.value;
+  const staff = db.staff.find(s=>s.id===sid);
+  if(staff && staff.subjects && staff.subjects.length) {
+    const subj = staff.subjects[0];
+    const inp = document.getElementById(`subj_${cid}_${day}_${pnum}`);
+    if(inp && !inp.value) { inp.value = subj; updateTTEntry(cid,day,pnum,'subject',subj); }
+  }
+}
+
+function saveTimetable() {
+  saveData();
+  alert('Timetable saved!');
+}
+
+// ═══════════════════════════════════════════════════════
+// MARK LEAVE
+// ═══════════════════════════════════════════════════════
+function getLeaveDate() {
+  return document.getElementById('leave-date-picker').value || todayStr();
+}
+
+function renderMarkLeave() {
+  const picker = document.getElementById('leave-date-picker');
+  if(!picker.value) picker.value = todayStr();
+  const dateStr = picker.value;
+  const dateObj = new Date(dateStr + 'T00:00:00');
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const formatted = dateObj.toLocaleDateString('en-IN', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('leave-day-label').textContent = 'Marking leave for: ' + formatted;
+
+  const onLeave = db.leaves[dateStr] || [];
+  let html = '<div class="grid-2">';
+  db.staff.forEach(s => {
+    const checked = onLeave.includes(s.id);
+    html += `<label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid ${checked?'#f44336':'var(--gray-200)'};border-radius:var(--radius);background:${checked?'var(--red-light)':'white'};cursor:pointer;transition:all 0.15s" id="leave-lbl-${s.id}">
+      <input type="checkbox" value="${s.id}" ${checked?'checked':''} onchange="toggleLeaveUI('${s.id}',this.checked)">
+      <div style="flex:1">
+        <div style="font-weight:500;font-size:14px">${s.name}</div>
+        <div style="font-size:12px;color:var(--gray-600)">${s.designation||''}</div>
+      </div>
+      <span class="badge badge-absent leave-badge" style="margin-left:auto;${checked?'':'display:none'}">Absent</span>
+    </label>`;
+  });
+  html += '</div>';
+  document.getElementById('leave-staff-list').innerHTML = html;
+}
+
+function toggleLeaveUI(sid, checked) {
+  const lbl = document.getElementById('leave-lbl-' + sid);
+  const badge = lbl.querySelector('.leave-badge');
+  if(checked) {
+    lbl.style.borderColor = '#f44336';
+    lbl.style.background = 'var(--red-light)';
+    if(badge) badge.style.display = '';
+  } else {
+    lbl.style.borderColor = 'var(--gray-200)';
+    lbl.style.background = 'white';
+    if(badge) badge.style.display = 'none';
+  }
+}
+
+function saveLeave() {
+  const dateStr = getLeaveDate();
+  const checked = [...document.querySelectorAll('#leave-staff-list input[type=checkbox]:checked')].map(c=>c.value);
+  db.leaves[dateStr] = checked;
+  saveData();
+  const dateObj = new Date(dateStr + 'T00:00:00');
+  const label = dateObj.toLocaleDateString('en-IN', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  showToast('Leave saved successfully for ' + label + ' — ' + checked.length + ' staff marked absent.', 'success');
+  renderMarkLeave();
+}
+
+// ═══════════════════════════════════════════════════════
+// SUBSTITUTIONS
+// ═══════════════════════════════════════════════════════
+function getSubDate() {
+  return document.getElementById('sub-date-picker').value || todayStr();
+}
+
+function getSubCount(dateStr) {
+  const subs = db.subs[dateStr] || {};
+  const count = {};
+  Object.values(subs).forEach(sid => { if(sid) count[sid] = (count[sid]||0)+1; });
+  return count;
+}
+
+function renderSubstitutions() {
+  const picker = document.getElementById('sub-date-picker');
+  if(!picker.value) picker.value = todayStr();
+  const dateStr = picker.value;
+  const dateObj = new Date(dateStr + 'T00:00:00');
+  const dayIdx = dateObj.getDay();
+  const dayMap = {0:'Sun',1:'Mon',2:'Tue',3:'Wed',4:'Thu',5:'Fri',6:'Sat'};
+  const dayKey = dayMap[dayIdx];
+  const onLeave = db.leaves[dateStr] || [];
+  if(!db.subs[dateStr]) db.subs[dateStr] = {};
+  const subs = db.subs[dateStr];
+  const subCount = getSubCount(dateStr);
+  let html = '';
+
+  const dateLabel = dateObj.toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  html += `<p class="text-sm text-muted mb-16">${dateLabel}</p>`;
+
+  if(!onLeave.length) {
+    html += '<div class="alert alert-success">No staff on leave for this date. No substitutions needed.</div>';
+    document.getElementById('sub-output').innerHTML = html;
+    return;
+  }
+
+  if(dayIdx === 0) {
+    html += '<div class="alert alert-warning">Selected date is a Sunday — no scheduled periods.</div>';
+    document.getElementById('sub-output').innerHTML = html;
+    return;
+  }
+
+  html += `<div class="alert alert-warning">${onLeave.length} staff on leave. Assign substitutes below.</div>`;
+
+  onLeave.forEach(sid => {
+    const staff = db.staff.find(s=>s.id===sid);
+    if(!staff) return;
+    html += `<div class="sub-card"><div class="sub-card-title">🔴 ${staff.name} — ${staff.designation||''}</div>`;
+
+    let hasPeriods = false;
+    db.classes.forEach(cls => {
+      const tt = db.timetable[cls.id]?.[dayKey];
+      if(!tt) return;
+      db.periods.forEach(p => {
+        const entry = tt[p.num];
+        if(entry && entry.staffId === sid) {
+          hasPeriods = true;
+          // Key includes class id to handle same staff in multiple classes same period
+          const key = `${sid}_${cls.id}_${p.num}`;
+          const assignedId = subs[key];
+          const assignedStaff = assignedId ? db.staff.find(s=>s.id===assignedId) : null;
+
+          // Fix 4: Only show staff who have NO timetable entry at all for this period (genuine free period)
+          // AND are not on leave AND are not the absent staff themselves
+          const leaveSet = new Set(onLeave);
+
+          // Build set of staff who have a class assigned in this period
+          const busyThisPeriod = new Set();
+          db.classes.forEach(cl2 => {
+            const e2 = db.timetable[cl2.id]?.[dayKey]?.[String(p.num)];
+            const e2n = db.timetable[cl2.id]?.[dayKey]?.[p.num];
+            const entry2 = e2 || e2n;
+            if(entry2 && entry2.staffId) busyThisPeriod.add(entry2.staffId);
+          });
+
+          const freeStaff = db.staff.filter(s => {
+            if(leaveSet.has(s.id)) return false;       // absent — never eligible
+            if(s.id === sid) return false;              // the absent teacher themselves
+            if(s.id === assignedId) return true;        // always show current assignee even if now busy
+            return !busyThisPeriod.has(s.id);          // only truly free (no class this period)
+          });
+
+          let leisureBtns = '';
+          if(freeStaff.length === 0) {
+            leisureBtns = '<span class="text-muted text-sm">No free staff this period</span>';
+          } else {
+            leisureBtns = freeStaff.map(fs => {
+              const cnt = subCount[fs.id] || 0;
+              const isAssigned = assignedId === fs.id;
+              // Fix 4: No limit — show all free staff, just display count as info
+              return `<button class="leisure-btn ${isAssigned?'assigned':''}"
+                onclick="assignSub('${dateStr}','${key}','${fs.id}')" title="${cnt} substitution(s) this day">
+                ${fs.name}${cnt>0?` <span style="font-size:10px;opacity:0.7">(${cnt})</span>`:''}
+              </button>`;
+            }).join('');
+          }
+
+          html += `<div class="sub-period">
+            <div class="sub-period-info">
+              <strong>P${p.num}</strong> · ${fmt12(p.start)} · <em>${cls.name}</em> · ${entry.subject||''}
+            </div>
+            <div style="flex:1">
+              ${assignedStaff ? `<div class="mb-8"><span class="badge badge-subbed">✓ ${assignedStaff.name}</span> <button class="btn btn-sm btn-danger" onclick="removeSub('${dateStr}','${key}')">✕</button></div>` : ''}
+              <div class="leisure-list">${leisureBtns}</div>
+            </div>
+          </div>`;
+        }
+      });
+    });
+    if(!hasPeriods) html += `<div class="text-muted text-sm" style="padding:8px">No scheduled periods on ${dayKey} for this staff.</div>`;
+    html += '</div>';
+  });
+
+  // Sub count summary
+  if(Object.keys(subCount).length) {
+    html += `<div class="card mt-16"><div class="card-title">Substitution load — ${dateLabel}</div><table><thead><tr><th>Staff</th><th>Times substituted</th></tr></thead><tbody>`;
+    Object.entries(subCount).sort((a,b)=>b[1]-a[1]).forEach(([sid2,cnt]) => {
+      const s = db.staff.find(x=>x.id===sid2);
+      html += `<tr><td>${s?s.name:sid2}</td><td><span class="badge badge-present">${cnt}</span></td></tr>`;
+    });
+    html += '</tbody></table></div>';
+  }
+
+  document.getElementById('sub-output').innerHTML = html;
+}
+
+function saveSubstitutions() {
+  saveData();
+  const dateStr = document.getElementById('sub-date-picker').value || todayStr();
+  const count = Object.keys(db.subs[dateStr] || {}).length;
+  showToast('Substitutions saved successfully — ' + count + ' assignment(s) recorded.', 'success');
+}
+
+function assignSub(dateStr, key, staffId) {
+  if(!db.subs[dateStr]) db.subs[dateStr] = {};
+  db.subs[dateStr][key] = staffId;
+  saveData();
+  renderSubstitutions();
+}
+
+function removeSub(dateStr, key) {
+  if(db.subs[dateStr]) { delete db.subs[dateStr][key]; saveData(); }
+  renderSubstitutions();
+}
+
+// ═══════════════════════════════════════════════════════
+// PRINT
+// ═══════════════════════════════════════════════════════
+function printPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('print-target'));
+  document.getElementById('page-' + pageId).classList.add('print-target');
+  window.print();
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+loadData();
+updateAdminUI();
+renderHome();
+</script>
+</body>
+</html>
