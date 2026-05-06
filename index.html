@@ -347,6 +347,7 @@
     height: 200px;
     background: rgba(249,168,37,0.12);
     border-radius: 50%;
+    pointer-events: none;
   }
   .home-hero-school { font-family: 'EB Garamond', serif; font-size: 36px; font-weight: 500; letter-spacing: 1px; }
   .home-hero-tagline { font-size: 13px; color: var(--sky-mid); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
@@ -364,23 +365,55 @@
 
   /* ── PRINT STYLES ── */
   @media print {
-    body { background: white; font-size: 12px; }
-    #app-header, #app-nav, .no-print, .btn, .btn-print { display: none !important; }
-    .page { display: block !important; }
-    .page:not(.print-target) { display: none !important; }
-    .card { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
-    .print-header { display: block !important; }
-    table { font-size: 11px; }
-    th, td { padding: 6px 8px; }
-    .timetable-table td.today-col, .timetable-table th.today-col { background: #f5f5f5 !important; color: black !important; border: 2px solid #333 !important; }
-    #app-main { padding: 0; max-width: 100%; }
-  }
-  .print-header { display: none; text-align: center; margin-bottom: 16px; }
-  .print-header h2 { font-family: 'EB Garamond', serif; font-size: 22px; }
-  .print-header p { font-size: 13px; color: #555; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body { background: white !important; font-size: 12px; margin: 0; }
+    #app-header, #app-nav, .no-print { display: none !important; }
+    #app-main { padding: 8px !important; max-width: 100% !important; }
 
-  /* ── TOAST ── */
-  #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
+    /* Hide all pages first, then show only the print target */
+    .page { display: none !important; }
+    .page.print-target { display: block !important; }
+
+    .card { box-shadow: none !important; border: 1px solid #bbb !important; margin-bottom: 10px; padding: 12px; break-inside: avoid; }
+    .card-title { display: none; }
+    .print-header { display: block !important; }
+    .print-school-name { font-family: serif; font-size: 20px; font-weight: 700; }
+    .print-meta { font-size: 11px; color: #444; margin: 2px 0 10px; }
+    .print-divider { border: none !important; border-top: 1.5px solid #333 !important; margin: 6px 0 10px; }
+
+    table { font-size: 10px !important; width: 100% !important; border-collapse: collapse !important; }
+    th, td { padding: 4px 6px !important; border: 1px solid #bbb !important; }
+    th { background: #eee !important; color: #000 !important; font-weight: 600; }
+    .timetable-table td.today-col, .timetable-table th.today-col { background: #f0f0f0 !important; color: #000 !important; border: 1.5px solid #333 !important; }
+
+    .badge { border: 1px solid #999 !important; background: #f5f5f5 !important; color: #000 !important; font-size: 10px; }
+    .alert { border: 1px solid #999 !important; background: #f9f9f9 !important; color: #000 !important; font-size: 11px; }
+    .sub-card { border: 1px solid #bbb !important; background: white !important; padding: 8px; margin-bottom: 8px; }
+    .sub-card-title { font-size: 12px; font-weight: 600; }
+    .leisure-list, .leisure-btn, .btn, .table-wrap > *:not(table) { display: none !important; }
+    .table-wrap { overflow: visible !important; }
+    .cell-subject { font-size: 10px; font-weight: 600; }
+    .cell-teacher { font-size: 9px; color: #555; }
+    .grid-2 label { border: 1px solid #bbb !important; background: white !important; padding: 4px 8px; margin-bottom: 4px; display: flex; }
+    .text-muted { color: #666 !important; }
+  }
+  .print-header { display: none; margin-bottom: 16px; border-bottom: 2px solid var(--navy); padding-bottom: 10px; }
+  .print-school-name { font-family: 'EB Garamond', serif; font-size: 22px; font-weight: 600; color: var(--navy); }
+  .print-meta { font-size: 13px; color: #555; margin-top: 3px; }
+
+  /* iOS Safari tap fix — divs with onclick need cursor:pointer to fire touch events */
+  .home-nav-card, .admin-action-card { cursor: pointer; -webkit-tap-highlight-color: rgba(0,0,0,0.08); }
+  .nav-btn, .btn { -webkit-tap-highlight-color: rgba(0,0,0,0.08); touch-action: manipulation; }
+
+  /* Minimum touch target 44px for all buttons (Apple HIG) */
+  .btn { min-height: 36px; }
+  .nav-btn { min-height: 44px; }
+  #toast-container {
+    position: fixed; bottom: 24px; right: 24px; z-index: 999;
+    display: flex; flex-direction: column; gap: 8px;
+    pointer-events: none; /* container itself never blocks taps */
+  }
+  .toast { pointer-events: auto; /* individual toasts are interactive */ }
   .toast {
     padding: 12px 18px; border-radius: var(--radius); font-size: 14px; font-weight: 500;
     box-shadow: var(--shadow-lg); max-width: 380px; opacity: 0;
@@ -442,6 +475,7 @@
     transform: scaleX(0);
     transition: transform 0.18s;
     transform-origin: left;
+    pointer-events: none;
   }
   .admin-action-card:hover { border-color: var(--blue-light); box-shadow: var(--shadow-lg); transform: translateY(-2px); }
   .admin-action-card:hover::after { transform: scaleX(1); }
@@ -455,6 +489,104 @@
   .admin-action-title { font-size: 15px; font-weight: 600; color: var(--navy); }
   .admin-action-desc { font-size: 12px; color: var(--gray-600); line-height: 1.5; }
   .admin-action-arrow { font-size: 18px; color: var(--gray-400); margin-top: auto; text-align: right; }
+
+  /* ══════════════════════════════════════════════════════
+     MOBILE RESPONSIVE  (≤ 768px)
+  ══════════════════════════════════════════════════════ */
+  @media (max-width: 768px) {
+
+    /* Header */
+    #app-header { height: auto; padding: 10px 14px; flex-wrap: wrap; gap: 8px; }
+    .header-logo { width: 34px; height: 34px; font-size: 15px; }
+    .header-title { font-size: 16px; }
+    .header-sub { font-size: 10px; }
+    #admin-status { gap: 6px; font-size: 12px; }
+    #btn-admin-login { padding: 4px 10px; font-size: 12px; }
+
+    /* Nav — horizontal scroll with bigger tap targets */
+    #app-nav { padding: 0 8px; gap: 0; }
+    .nav-btn { padding: 10px 12px; font-size: 12px; }
+
+    /* Main */
+    #app-main { padding: 14px 10px; }
+    .card { padding: 16px 14px; }
+    .card-title { font-size: 17px; }
+
+    /* Stat grid — 2 columns on mobile */
+    .grid-3 { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .grid-2 { grid-template-columns: 1fr; gap: 10px; }
+    .stat-value { font-size: 26px; }
+
+    /* Home hero */
+    .home-hero { padding: 24px 16px; }
+    .home-hero-school { font-size: 26px; }
+    .home-hero-tagline { font-size: 13px; }
+    .home-nav-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .home-nav-card { padding: 16px 12px; }
+    .home-nav-icon { font-size: 22px; }
+    .home-nav-title { font-size: 13px; }
+    .home-nav-desc { font-size: 11px; display: none; }
+
+    /* Admin dashboard cards */
+    .admin-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .admin-action-card { padding: 14px 12px; gap: 6px; }
+    .admin-action-icon { width: 36px; height: 36px; font-size: 18px; }
+    .admin-action-title { font-size: 13px; }
+    .admin-action-desc { display: none; }
+
+    /* Forms */
+    .form-row { flex-direction: column; gap: 8px; }
+    .form-group { max-width: 100% !important; width: 100%; }
+    .form-group input, .form-group select { width: 100%; }
+    .form-group[style*="justify-content:flex-end"] { align-items: stretch; }
+    .form-group[style*="justify-content:flex-end"] .btn { width: 100%; justify-content: center; }
+
+    /* Tables — horizontal scroll container */
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { min-width: 500px; font-size: 12px; }
+    th, td { padding: 7px 8px; }
+
+    /* Timetable table cells */
+    .timetable-table th, .timetable-table td { padding: 5px 6px; min-width: 70px; }
+    .cell-subject { font-size: 11px; }
+    .cell-teacher { font-size: 10px; }
+    .tt-cell-input { min-width: 80px; font-size: 11px; }
+
+    /* Sub cards */
+    .sub-card { padding: 12px; }
+    .sub-period { flex-direction: column; gap: 6px; }
+    .leisure-list { gap: 4px; }
+    .leisure-btn { font-size: 11px; padding: 4px 8px; }
+
+    /* Leave labels */
+    #leave-staff-list .grid-2 { grid-template-columns: 1fr; }
+
+    /* Period rows */
+    .period-row { gap: 6px; }
+
+    /* Modals */
+    .modal { padding: 24px 18px; margin: 16px; width: calc(100% - 32px); }
+
+    /* Toast */
+    #toast-container { bottom: 12px; right: 8px; left: 8px; align-items: stretch; }
+    .toast { max-width: 100%; font-size: 13px; }
+
+    /* Flex helpers override */
+    .flex { flex-wrap: wrap; }
+
+    /* Larger tap targets on mobile */
+    .btn { min-height: 42px; padding: 10px 16px; }
+    .btn-sm { min-height: 36px; padding: 7px 12px; }
+    .nav-btn { min-height: 44px; padding: 12px 14px; }
+  }
+
+  /* Extra small phones (≤ 400px) */
+  @media (max-width: 400px) {
+    .home-nav-grid { grid-template-columns: 1fr; }
+    .admin-grid { grid-template-columns: 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr; }
+    .header-title { font-size: 14px; }
+  }
 </style>
 </head>
 <body>
@@ -464,11 +596,12 @@
   <div class="header-brand">
     <div class="header-logo">RGI</div>
     <div>
-      <div class="header-title">Royal Matric Hr Sec School</div>
-      <div class="header-sub">Timetable Management System</div>
+      <div class="header-title" id="header-school-name">RGI Teacher Timetable</div>
+      <div class="header-sub" id="header-acad-year">Timetable Management System</div>
     </div>
   </div>
   <div id="admin-status">
+    <span id="autosave-indicator" style="font-size:11px;color:var(--gold);opacity:0;transition:opacity 0.4s;margin-right:6px;white-space:nowrap"></span>
     <span id="admin-badge" class="badge-admin hidden">Admin</span>
     <button id="btn-logout" class="btn-logout hidden" onclick="logout()">Logout</button>
     <button id="btn-admin-login" onclick="openLogin()">Admin Login</button>
@@ -487,6 +620,10 @@
   <button class="nav-btn admin-only" onclick="showPage('assign-timetable')">Assign Timetable</button>
   <button class="nav-btn admin-only" onclick="showPage('mark-leave')">Mark Leave</button>
   <button class="nav-btn admin-only" onclick="showPage('substitutions')">Substitutions</button>
+  <button class="nav-btn admin-only" onclick="showPage('holidays')">Holidays</button>
+  <button class="nav-btn admin-only" onclick="showPage('special-class')">Special Class</button>
+  <button class="nav-btn admin-only" onclick="showPage('mark-od')">Mark OD</button>
+  <button class="nav-btn admin-only" onclick="showPage('workload')">Workload</button>
 </nav>
 
 <!-- MAIN -->
@@ -495,9 +632,11 @@
   <!-- HOME PAGE -->
   <div id="page-home" class="page active">
     <div class="home-hero">
-      <div class="home-hero-school">Royal Matric Hr Sec School</div>
+      <div class="home-hero-school" id="home-school-name">RGI School</div>
       <div class="home-hero-tagline">Teacher Timetable Management System</div>
       <div class="home-hero-date" id="home-date"></div>
+      <div id="home-acad-year" style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px"></div>
+      <div id="home-holiday-banner" style="display:none;margin-top:10px;padding:8px 14px;border-radius:var(--radius);font-weight:600;font-size:14px;color:white;letter-spacing:0.3px"></div>
     </div>
     <div class="grid-3 mb-16" id="home-stats"></div>
     <div class="home-nav-grid">
@@ -556,6 +695,30 @@
           <div class="admin-action-icon">🔄</div>
           <div class="admin-action-title">Substitution Dashboard</div>
           <div class="admin-action-desc">Assign free staff to cover absent teachers' periods</div>
+          <div class="admin-action-arrow">→</div>
+        </div>
+        <div class="admin-action-card" style="--card-accent:#f57f17;--icon-bg:#fff8e1" onclick="showPage('mark-od')">
+          <div class="admin-action-icon">🟡</div>
+          <div class="admin-action-title">Mark Staff OD</div>
+          <div class="admin-action-desc">Mark staff as On Duty — substitution arranged for their periods</div>
+          <div class="admin-action-arrow">→</div>
+        </div>
+        <div class="admin-action-card" style="--card-accent:#8e24aa;--icon-bg:#f3e5f5" onclick="showPage('special-class')">
+          <div class="admin-action-icon">🌟</div>
+          <div class="admin-action-title">Special Classes</div>
+          <div class="admin-action-desc">Schedule special classes for any date with custom timings</div>
+          <div class="admin-action-arrow">→</div>
+        </div>
+        <div class="admin-action-card" style="--card-accent:#00838f;--icon-bg:#e0f7fa" onclick="showPage('holidays')">
+          <div class="admin-action-icon">🏖</div>
+          <div class="admin-action-title">Holidays &amp; Exams</div>
+          <div class="admin-action-desc">Mark holidays and exam days on the calendar</div>
+          <div class="admin-action-arrow">→</div>
+        </div>
+        <div class="admin-action-card" style="--card-accent:#37474f;--icon-bg:#f0f4f8" onclick="showPage('workload')">
+          <div class="admin-action-icon">📊</div>
+          <div class="admin-action-title">Staff Workload Report</div>
+          <div class="admin-action-desc">View periods per staff per week to balance teaching load</div>
           <div class="admin-action-arrow">→</div>
         </div>
       </div>
@@ -628,7 +791,11 @@
   <!-- LEAVE VIEW -->
   <div id="page-leave-view" class="page">
     <div class="card">
-      <div class="card-title">Leaves &amp; Substitutions</div>
+      <div class="print-header" id="print-lv-header"></div>
+      <div class="flex items-center justify-between flex-wrap gap-8 mb-16 no-print">
+        <div class="card-title" style="margin:0;border:none;padding:0">Leaves &amp; Substitutions</div>
+        <button class="btn btn-print no-print" onclick="printPage('leave-view')">🖨 Print</button>
+      </div>
       <div class="form-row no-print" style="margin-bottom:16px;align-items:flex-end">
         <div class="form-group" style="max-width:220px">
           <label>View for date</label>
@@ -748,8 +915,12 @@
   <!-- ASSIGN TIMETABLE -->
   <div id="page-assign-timetable" class="page">
     <div class="card">
-      <div class="card-title">Assign Timetable</div>
-      <div class="alert alert-info" style="margin-bottom:14px">
+      <div class="print-header" id="print-tt-header"></div>
+      <div class="flex items-center justify-between flex-wrap gap-8 mb-14 no-print">
+        <div class="card-title" style="margin:0;border:none;padding:0">Assign Timetable</div>
+        <button class="btn btn-print no-print" onclick="printPage('assign-timetable')">🖨 Print</button>
+      </div>
+      <div class="alert alert-info no-print" style="margin-bottom:14px">
         <strong>Note:</strong> This timetable is fixed for the academic year. Remember: Tamil subject staff for <strong>Classes 5–8</strong> and <strong>Classes 9–12</strong> are different — assign the correct teacher per class group.
       </div>
       <div class="form-row no-print">
@@ -768,9 +939,13 @@
   <!-- MARK LEAVE -->
   <div id="page-mark-leave" class="page">
     <div class="card">
-      <div class="card-title">Mark Staff Leave</div>
-      <div class="alert alert-info">Select a date and mark staff as absent. You can mark leave in advance for any date.</div>
-      <div class="form-row" style="margin-bottom:16px;align-items:flex-end">
+      <div class="print-header" id="print-leave-header"></div>
+      <div class="flex items-center justify-between flex-wrap gap-8 mb-14 no-print">
+        <div class="card-title" style="margin:0;border:none;padding:0">Mark Staff Leave</div>
+        <button class="btn btn-print no-print" onclick="printPage('mark-leave')">🖨 Print</button>
+      </div>
+      <div class="alert alert-info no-print">Select a date and mark staff as absent. You can mark leave in advance for any date.</div>
+      <div class="form-row no-print" style="margin-bottom:16px;align-items:flex-end">
         <div class="form-group" style="max-width:220px">
           <label>Select Date</label>
           <input type="date" id="leave-date-picker" onchange="renderMarkLeave()">
@@ -781,7 +956,7 @@
       </div>
       <div id="leave-day-label" class="text-sm text-muted mb-16"></div>
       <div id="leave-staff-list"></div>
-      <div class="mt-16">
+      <div class="mt-16 no-print">
         <button class="btn btn-primary" onclick="saveLeave()">Save Leave Records</button>
       </div>
     </div>
@@ -790,8 +965,12 @@
   <!-- SUBSTITUTIONS -->
   <div id="page-substitutions" class="page">
     <div class="card">
-      <div class="card-title">Substitution Dashboard</div>
-      <div class="form-row" style="margin-bottom:16px;align-items:flex-end">
+      <div class="print-header" id="print-sub-header"></div>
+      <div class="flex items-center justify-between flex-wrap gap-8 mb-14 no-print">
+        <div class="card-title" style="margin:0;border:none;padding:0">Substitution Dashboard</div>
+        <button class="btn btn-print no-print" onclick="printPage('substitutions')">🖨 Print</button>
+      </div>
+      <div class="form-row no-print" style="margin-bottom:16px;align-items:flex-end">
         <div class="form-group" style="max-width:220px">
           <label>View substitutions for date</label>
           <input type="date" id="sub-date-picker" onchange="renderSubstitutions()">
@@ -804,6 +983,138 @@
       <div id="sub-output"></div>
     </div>
   </div>
+
+  <!-- HOLIDAYS PAGE -->
+  <div id="page-holidays" class="page">
+    <div class="card">
+      <div class="print-header" id="print-hol-header"></div>
+      <div class="flex items-center justify-between flex-wrap gap-8 mb-14 no-print">
+        <div class="card-title" style="margin:0;border:none;padding:0">Holidays &amp; Exam Days</div>
+        <button class="btn btn-print no-print" onclick="printPage('holidays')">🖨 Print</button>
+      </div>
+      <div class="alert alert-info no-print">Mark dates as holidays or exam days. These dates will show a banner instead of leave/substitution prompts.</div>
+      <div class="form-row no-print" style="align-items:flex-end;margin-bottom:16px">
+        <div class="form-group" style="max-width:200px">
+          <label>Date</label>
+          <input type="date" id="holiday-date">
+        </div>
+        <div class="form-group" style="max-width:200px">
+          <label>Type</label>
+          <select id="holiday-type">
+            <option value="holiday">🏖 Holiday</option>
+            <option value="exam">📝 Exam Day</option>
+          </select>
+        </div>
+        <div class="form-group" style="max-width:260px">
+          <label>Name / Reason</label>
+          <input type="text" id="holiday-name" placeholder="e.g. Pongal, Quarterly Exam">
+        </div>
+        <div class="form-group" style="justify-content:flex-end">
+          <button class="btn btn-primary" onclick="addHoliday()">+ Add</button>
+        </div>
+      </div>
+      <div id="holidays-list"></div>
+    </div>
+  </div>
+
+  <!-- SPECIAL CLASS PAGE -->
+  <div id="page-special-class" class="page">
+    <div class="card">
+      <div class="print-header" id="print-sc-header"></div>
+      <div class="flex items-center justify-between flex-wrap gap-8 mb-14 no-print">
+        <div class="card-title" style="margin:0;border:none;padding:0">🌟 Special Classes</div>
+        <button class="btn btn-print no-print" onclick="printPage('special-class')">🖨 Print</button>
+      </div>
+      <div class="alert alert-info no-print">Schedule special classes for any date — including holidays. These are independent of the regular timetable. Staff clash with regular periods is shown.</div>
+      <div class="form-row" style="align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:8px">
+        <div class="form-group" style="max-width:180px">
+          <label>Date</label>
+          <input type="date" id="sc-date" onchange="checkSCClash()">
+        </div>
+        <div class="form-group" style="max-width:200px">
+          <label>Class</label>
+          <select id="sc-class"></select>
+        </div>
+        <div class="form-group" style="max-width:220px">
+          <label>Staff</label>
+          <select id="sc-staff" onchange="checkSCClash()"></select>
+        </div>
+        <div class="form-group" style="max-width:200px">
+          <label>Subject</label>
+          <input type="text" id="sc-subject" placeholder="e.g. Mathematics Revision">
+        </div>
+      </div>
+      <div class="form-row" style="align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:8px">
+        <div class="form-group" style="max-width:140px">
+          <label>Start Time</label>
+          <input type="time" id="sc-start" value="09:00" onchange="checkSCClash()">
+        </div>
+        <div class="form-group" style="max-width:140px">
+          <label>End Time</label>
+          <input type="time" id="sc-end" value="12:00" onchange="checkSCClash()">
+        </div>
+        <div class="form-group" style="max-width:260px">
+          <label>Note (optional)</label>
+          <input type="text" id="sc-note" placeholder="e.g. Full day revision for exams">
+        </div>
+        <div class="form-group" style="justify-content:flex-end">
+          <button class="btn btn-primary" onclick="addSpecialClass()">+ Add Special Class</button>
+        </div>
+      </div>
+      <div id="sc-clash-warn" style="display:none" class="alert alert-warning"></div>
+      <hr>
+      <div class="form-row" style="align-items:flex-end;margin-bottom:12px">
+        <div class="form-group" style="max-width:200px">
+          <label>View date</label>
+          <input type="date" id="sc-view-date" onchange="renderSpecialClassList()">
+        </div>
+        <div class="form-group" style="justify-content:flex-end">
+          <button class="btn btn-secondary btn-sm" onclick="document.getElementById('sc-view-date').value=todayStr();renderSpecialClassList()">Today</button>
+        </div>
+      </div>
+      <div id="sc-list"></div>
+    </div>
+  </div>
+
+  <!-- MARK OD PAGE -->
+  <div id="page-mark-od" class="page">
+    <div class="card">
+      <div class="print-header" id="print-od-header"></div>
+      <div class="flex items-center justify-between flex-wrap gap-8 mb-14 no-print">
+        <div class="card-title" style="margin:0;border:none;padding:0">🟡 Mark Staff On Duty (OD)</div>
+        <button class="btn btn-print no-print" onclick="printPage('mark-od')">🖨 Print</button>
+      </div>
+      <div class="alert alert-info no-print">Mark staff as On Duty for a date. OD staff are treated like absent — substitution can be assigned for their periods. OD is tracked separately from leave in workload report.</div>
+      <div class="form-row" style="margin-bottom:16px;align-items:flex-end">
+        <div class="form-group" style="max-width:220px">
+          <label>Select Date</label>
+          <input type="date" id="od-date-picker" onchange="renderMarkOD()">
+        </div>
+        <div class="form-group" style="justify-content:flex-end">
+          <button class="btn btn-secondary" onclick="document.getElementById('od-date-picker').value=todayStr();renderMarkOD()">Today</button>
+        </div>
+      </div>
+      <div id="od-day-label" class="text-sm text-muted mb-16"></div>
+      <div id="od-staff-list"></div>
+      <div class="mt-16">
+        <button class="btn btn-gold" onclick="saveOD()">💾 Save OD Records</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORKLOAD PAGE -->
+  <div id="page-workload" class="page">
+    <div class="card">
+      <div class="print-header" id="print-wl-header"></div>
+      <div class="flex items-center justify-between flex-wrap gap-8 mb-14 no-print">
+        <div class="card-title" style="margin:0;border:none;padding:0">Staff Workload Report</div>
+        <button class="btn btn-print no-print" onclick="printPage('workload')">🖨 Print</button>
+      </div>
+      <div class="alert alert-info no-print">Shows regular timetable load, substitutions, OD days, and special class assignments per staff.</div>
+      <div id="workload-output"></div>
+    </div>
+  </div>
+
 
 </main>
 
@@ -843,8 +1154,8 @@ function showToast(msg, type='info', duration=3500) {
   }, duration);
 }
 // ═══════════════════════════════════════════════════════
-const PASSKEY = 'ROYAL@1982';
 const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat'];
+function getPasskey() { return (db.settings && db.settings.passkey) || 'ROYAL@1982'; }
 
 let db = {
   staff: [],
@@ -853,7 +1164,15 @@ let db = {
   timetable: {}, // {classId: {Mon: {1: {staffId, subject}}, ...}}
   leaves: {},    // {dateStr: [staffId, ...]}
   subs: {},      // {dateStr: {absentId_classId_pnum: subStaffId}}
-  classBreaks: {} // {classId: [{type, start, end}]}
+  classBreaks: {}, // {classId: [{type, start, end}]}
+  holidays: {},  // {dateStr: {name, type}} type: 'holiday'|'exam'
+  settings: {    // school-wide settings
+    schoolName: 'RGI School',
+    academicYear: '2024–25',
+    passkey: 'ROYAL@1982'
+  },
+  specialClasses: {}, // {dateStr: [{id, classId, staffId, subject, start, end, note}]}
+  od: {}              // {dateStr: [staffId, ...]} — On Duty staff (like leave but different reason)
 };
 
 function todayStr() {
@@ -888,7 +1207,12 @@ function loadData() {
   if(saved) {
     try {
       db = JSON.parse(saved);
-      if(!db.classBreaks) db.classBreaks = {};
+      if(!db.classBreaks)    db.classBreaks = {};
+      if(!db.holidays)       db.holidays = {};
+      if(!db.settings)       db.settings = { schoolName:'RGI School', academicYear:'2024–25', passkey:'ROYAL@1982' };
+      if(!db.settings.passkey) db.settings.passkey = 'ROYAL@1982';
+      if(!db.specialClasses) db.specialClasses = {};
+      if(!db.od)             db.od = {};
     } catch(e) {}
   } else {
     seedData();
@@ -897,6 +1221,16 @@ function loadData() {
 
 function saveData() {
   localStorage.setItem('rgi_timetable_v2', JSON.stringify(db));
+  // Show auto-save indicator
+  const ind = document.getElementById('autosave-indicator');
+  if(ind) {
+    const now = new Date();
+    const t = now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    ind.textContent = '✓ Saved ' + t;
+    ind.style.opacity = '1';
+    clearTimeout(ind._timer);
+    ind._timer = setTimeout(() => { ind.style.opacity = '0'; }, 2500);
+  }
 }
 
 function seedData() {
@@ -979,7 +1313,7 @@ function closeLogin() { document.getElementById('login-modal').classList.remove(
 
 function doLogin() {
   const val = document.getElementById('passkey-input').value;
-  if(val === PASSKEY) {
+  if(val === getPasskey()) {
     sessionStorage.setItem('rgi_admin','1');
     closeLogin();
     updateAdminUI();
@@ -1017,8 +1351,8 @@ function showPage(id) {
   });
   // Page-specific renders
   if(id==='home') renderHome();
-  if(id==='teacher-view') { populateTeacherSelect(); renderTeacherTimetable(); }
-  if(id==='class-view') { populateClassSelect(); renderClassTimetable(); }
+  if(id==='teacher-view') { populateTeacherSelect(); const p=document.getElementById('tv-date-picker'); if(p&&!p.value) p.value=todayStr(); renderTeacherTimetable(); }
+  if(id==='class-view') { populateClassSelect(); const p=document.getElementById('cv-date-picker'); if(p&&!p.value) p.value=todayStr(); renderClassTimetable(); }
   if(id==='leave-view') { const p=document.getElementById('lv-date-picker'); if(p&&!p.value) p.value=todayStr(); renderLeaveView(); }
   if(id==='manage-staff') renderStaffTable();
   if(id==='manage-classes') { renderClassesTable(); populateClassTeacherSelect(); }
@@ -1026,6 +1360,10 @@ function showPage(id) {
   if(id==='assign-timetable') { populateTTClassSelect(); loadTimetableEditor(); }
   if(id==='mark-leave') { renderMarkLeave(); }
   if(id==='substitutions') { const p=document.getElementById('sub-date-picker'); if(p&&!p.value) p.value=todayStr(); renderSubstitutions(); }
+  if(id==='holidays') { const p=document.getElementById('holiday-date'); if(p&&!p.value) p.value=todayStr(); renderHolidaysList(); }
+  if(id==='special-class') { populateSCDropdowns(); const p=document.getElementById('sc-date'); if(p&&!p.value) p.value=todayStr(); const pv=document.getElementById('sc-view-date'); if(pv&&!pv.value) pv.value=todayStr(); renderSpecialClassList(); }
+  if(id==='mark-od') { const p=document.getElementById('od-date-picker'); if(p&&!p.value) p.value=todayStr(); renderMarkOD(); }
+  if(id==='workload') renderWorkload();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1036,13 +1374,28 @@ function renderHome() {
   document.getElementById('home-date').textContent = now.toLocaleDateString('en-IN', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
   const today = todayStr();
   const onLeave = (db.leaves[today] || []).length;
+  const onOD    = (db.od[today] || []).length;
   const totalStaff = db.staff.length;
   const totalClasses = db.classes.length;
+  const holiday = (db.holidays||{})[today];
+
+  // Holiday banner on home page
+  const heroBanner = document.getElementById('home-holiday-banner');
+  if(heroBanner) {
+    if(holiday) {
+      heroBanner.style.display = '';
+      heroBanner.innerHTML = `<span>${holiday.type==='exam'?'📝':'🏖'} ${holiday.name}</span>`;
+      heroBanner.style.background = holiday.type==='exam' ? 'rgba(21,101,192,0.18)' : 'rgba(46,125,50,0.18)';
+    } else {
+      heroBanner.style.display = 'none';
+    }
+  }
+
   document.getElementById('home-stats').innerHTML = `
     <div class="stat-card accent-blue"><div class="stat-label">Total Staff</div><div class="stat-value">${totalStaff}</div></div>
     <div class="stat-card accent-red"><div class="stat-label">On Leave Today</div><div class="stat-value">${onLeave}</div></div>
+    <div class="stat-card accent-gold"><div class="stat-label">On OD Today</div><div class="stat-value">${onOD}</div></div>
     <div class="stat-card accent-green"><div class="stat-label">Classes</div><div class="stat-value">${totalClasses}</div></div>
-    <div class="stat-card accent-gold"><div class="stat-label">Periods/Day</div><div class="stat-value">${db.periods.length}</div></div>
   `;
 }
 
@@ -1094,8 +1447,23 @@ function renderTeacherTimetable() {
   });
 
   let html = '';
+
+  // Holiday banner for selected date
+  const holiday = (db.holidays||{})[viewDate];
+  if(holiday) {
+    html += `<div class="alert" style="background:${holiday.type==='exam'?'#e3f2fd':'#e8f5e9'};border-left:4px solid ${holiday.type==='exam'?'var(--blue)':'var(--green)'};color:${holiday.type==='exam'?'#0d47a1':'var(--green)'}">
+      ${holiday.type==='exam'?'📝':'🏖'} <strong>${holiday.name}</strong> — ${dateLabelShort} is a ${holiday.type==='exam'?'Exam Day':'Holiday'}.
+    </div>`;
+  }
+
+  // OD / Absent banners
+  const odView = new Set(db.od[viewDate] || []);
+  const isODView = odView.has(sid);
+
   if(isAbsentView) {
     html += `<div class="alert alert-danger" style="margin-bottom:14px">🔴 This staff is marked absent on ${dateLabelShort}.</div>`;
+  } else if(isODView) {
+    html += `<div class="alert alert-warning" style="margin-bottom:14px">🟡 This staff is on OD (On Duty) on ${dateLabelShort}. Substitution may be needed.</div>`;
   } else if(subCount > 0) {
     const countColor = subCount >= 3 ? 'var(--red)' : subCount >= 2 ? 'var(--orange)' : 'var(--green)';
     html += `<div style="background:var(--off-white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
@@ -1199,10 +1567,37 @@ function renderClassTimetable() {
   const names = classIds.map(id => db.classes.find(c=>c.id===id)?.name).join(', ');
   hdr.innerHTML = `<h2>RGI School — Class Timetable</h2><p>${names} &nbsp;|&nbsp; ${viewObj.toLocaleDateString('en-IN')}</p>`;
 
+  // Holiday banner
+  const cvHoliday = (db.holidays||{})[viewDate];
+  let html = '';
+  if(cvHoliday) {
+    html += `<div class="alert" style="background:${cvHoliday.type==='exam'?'#e3f2fd':'#e8f5e9'};border-left:4px solid ${cvHoliday.type==='exam'?'var(--blue)':'var(--green)'};color:${cvHoliday.type==='exam'?'#0d47a1':'var(--green)'}">
+      ${cvHoliday.type==='exam'?'📝':'🏖'} <strong>${cvHoliday.name}</strong> — ${dateLabelShort} is a ${cvHoliday.type==='exam'?'Exam Day':'Holiday'}.
+    </div>`;
+  }
+
+  // Special classes for this date
+  const specialOnDate = (db.specialClasses||{})[viewDate] || [];
+  const specialForClasses = specialOnDate.filter(sc => classIds.includes(sc.classId));
+  if(specialForClasses.length) {
+    html += `<div style="background:#f3e5f5;border:1px solid #ce93d8;border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:16px">
+      <div style="font-weight:600;color:#6a1b9a;font-size:14px;margin-bottom:8px">🌟 Special Classes — ${dateLabelShort}</div>`;
+    specialForClasses.forEach(sc => {
+      const cls = db.classes.find(c=>c.id===sc.classId);
+      const staff = db.staff.find(s=>s.id===sc.staffId);
+      html += `<div style="background:white;border-radius:var(--radius);padding:8px 12px;margin-bottom:6px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <span style="font-size:12px;background:#f3e5f5;color:#6a1b9a;padding:2px 8px;border-radius:10px">${cls?.name||''}</span>
+        <span style="font-weight:500">${sc.subject}</span>
+        <span style="color:var(--gray-600);font-size:13px">${staff?.name||''}</span>
+        <span style="color:var(--gray-400);font-size:12px">${fmt12(sc.start)} – ${fmt12(sc.end)}</span>
+        ${sc.note?`<span style="font-size:12px;color:var(--gray-600);font-style:italic">${sc.note}</span>`:''}
+      </div>`;
+    });
+    html += '</div>';
+  }
+
   // Global periods (only period type)
   const globalPeriods = [...db.periods].sort((a,b)=>a.start.localeCompare(b.start));
-
-  let html = '';
   classIds.forEach(cid => {
     const cls = db.classes.find(c=>c.id===cid);
     if(!cls) return;
@@ -1302,6 +1697,17 @@ function renderLeaveView() {
   const onLeave = db.leaves[dateStr] || [];
   const subs = db.subs[dateStr] || {};
   let html = `<p class="text-sm text-muted mb-16">${dateLabel}</p>`;
+
+  // Holiday check
+  const holiday = (db.holidays||{})[dateStr];
+  if(holiday) {
+    html += `<div class="alert" style="background:${holiday.type==='exam'?'#e3f2fd':'#e8f5e9'};border-left:4px solid ${holiday.type==='exam'?'var(--blue)':'var(--green)'};color:${holiday.type==='exam'?'#0d47a1':'var(--green)'}">
+      ${holiday.type==='exam'?'📝':'🏖'} <strong>${holiday.name}</strong> — This date is marked as a ${holiday.type==='exam'?'Exam Day':'Holiday'}. No leave or substitutions recorded.
+    </div>`;
+    document.getElementById('lv-output').innerHTML = html;
+    return;
+  }
+
   if(!onLeave.length) {
     html += '<div class="alert alert-success">No staff on leave for this date.</div>';
   } else {
@@ -1750,12 +2156,37 @@ function loadTimetableEditor() {
     html += `<tr><td><strong>P${p.num}</strong><br><span class="text-muted text-sm">${fmt12(p.start)}–${fmt12(p.end)}</span></td>`;
     DAYS.forEach(d => {
       const entry = tt[d]?.[p.num] || {};
-      const staffOpts = db.staff.map(s=>`<option value="${s.id}" ${entry.staffId===s.id?'selected':''}>${s.name}</option>`).join('');
+
+      // Build clash map: staffId → className for OTHER classes this same day+period
+      const clashMap = {};
+      db.classes.forEach(otherCls => {
+        if(otherCls.id === cid) return;
+        const otherEntry = db.timetable[otherCls.id]?.[d]?.[p.num];
+        if(otherEntry && otherEntry.staffId) clashMap[otherEntry.staffId] = otherCls.name;
+      });
+
+      const staffOpts = db.staff.map(s => {
+        const isSelected = entry.staffId === s.id;
+        const clash = clashMap[s.id];
+        if(clash && !isSelected) {
+          // Disabled — already in another class this period
+          return `<option value="${s.id}" disabled style="color:#bbb">${s.name} (in ${clash})</option>`;
+        }
+        return `<option value="${s.id}" ${isSelected?'selected':''}>${s.name}${clash?' ⚠ clash':''}</option>`;
+      }).join('');
+
       const subjectVal = entry.subject||'';
-      html += `<td style="padding:4px">
-        <select class="tt-cell-input" onchange="updateTTEntry('${cid}','${d}',${p.num},'staffId',this.value);autoFillSubject('${cid}','${d}',${p.num},this)">
+      // If current staff has a clash (edge case: was assigned before enforcement), show warning
+      const hasCurrClash = entry.staffId && clashMap[entry.staffId];
+      const clashWarn = hasCurrClash
+        ? `<div style="font-size:10px;color:var(--red);margin-top:2px">⚠ Clash with ${clashMap[entry.staffId]}</div>`
+        : '';
+
+      html += `<td style="padding:4px;${hasCurrClash?'background:#fff0f0;':''}">
+        <select class="tt-cell-input" onchange="updateTTEntry('${cid}','${d}',${p.num},'staffId',this.value,this);autoFillSubject('${cid}','${d}',${p.num},this)">
           <option value="">—</option>${staffOpts}
         </select>
+        ${clashWarn}
         <input type="text" class="tt-cell-input" style="margin-top:3px" placeholder="Subject" value="${subjectVal}"
           oninput="updateTTEntry('${cid}','${d}',${p.num},'subject',this.value)" id="subj_${cid}_${d}_${p.num}">
       </td>`;
@@ -1763,13 +2194,37 @@ function loadTimetableEditor() {
     html += '</tr>';
   });
   html += '</tbody></table></div></div>';
+  html += `<div style="font-size:12px;color:var(--gray-600);margin-top:8px;display:flex;gap:16px;flex-wrap:wrap">
+    <span>Grey options = staff already assigned elsewhere this period</span>
+    <span style="color:var(--red)">⚠ = existing clash (please reassign)</span>
+  </div>`;
   ed.innerHTML = html;
 }
 
-function updateTTEntry(cid, day, pnum, field, val) {
+function updateTTEntry(cid, day, pnum, field, val, selectEl) {
   if(!db.timetable[cid]) db.timetable[cid] = {};
   if(!db.timetable[cid][day]) db.timetable[cid][day] = {};
   if(!db.timetable[cid][day][pnum]) db.timetable[cid][day][pnum] = {};
+
+  // Clash check: if assigning a staff, make sure no other class has them this period+day
+  if(field === 'staffId' && val) {
+    const clash = db.classes.find(otherCls => {
+      if(otherCls.id === cid) return false;
+      const e = db.timetable[otherCls.id]?.[day]?.[pnum];
+      return e && e.staffId === val;
+    });
+    if(clash) {
+      const staffName = db.staff.find(s=>s.id===val)?.name || 'This staff';
+      showToast(`${staffName} is already assigned to ${clash.name} on ${day} Period ${pnum}. Cannot assign to two classes at the same time.`, 'danger', 4000);
+      // Revert dropdown
+      if(selectEl) {
+        const prev = db.timetable[cid][day][pnum].staffId || '';
+        selectEl.value = prev;
+      }
+      return;
+    }
+  }
+
   db.timetable[cid][day][pnum][field] = val;
 }
 
@@ -1779,7 +2234,7 @@ function autoFillSubject(cid, day, pnum, sel) {
   if(staff && staff.subjects && staff.subjects.length) {
     const subj = staff.subjects[0];
     const inp = document.getElementById(`subj_${cid}_${day}_${pnum}`);
-    if(inp && !inp.value) { inp.value = subj; updateTTEntry(cid,day,pnum,'subject',subj); }
+    if(inp && !inp.value) { inp.value = subj; updateTTEntry(cid,day,pnum,'subject',subj,null); }
   }
 }
 
@@ -1800,9 +2255,18 @@ function renderMarkLeave() {
   if(!picker.value) picker.value = todayStr();
   const dateStr = picker.value;
   const dateObj = new Date(dateStr + 'T00:00:00');
-  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const formatted = dateObj.toLocaleDateString('en-IN', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
   document.getElementById('leave-day-label').textContent = 'Marking leave for: ' + formatted;
+
+  // Holiday check
+  const holiday = (db.holidays||{})[dateStr];
+  if(holiday) {
+    document.getElementById('leave-staff-list').innerHTML = `
+      <div class="alert" style="background:${holiday.type==='exam'?'#e3f2fd':'#e8f5e9'};border-left:4px solid ${holiday.type==='exam'?'var(--blue)':'var(--green)'};color:${holiday.type==='exam'?'#0d47a1':'var(--green)'}">
+        ${holiday.type==='exam'?'📝':'🏖'} <strong>${holiday.name}</strong> — This date is marked as a ${holiday.type==='exam'?'Exam Day':'Holiday'}. Leave marking is not available.
+      </div>`;
+    return;
+  }
 
   const onLeave = db.leaves[dateStr] || [];
   let html = '<div class="grid-2">';
@@ -1869,6 +2333,9 @@ function renderSubstitutions() {
   const dayMap = {0:'Sun',1:'Mon',2:'Tue',3:'Wed',4:'Thu',5:'Fri',6:'Sat'};
   const dayKey = dayMap[dayIdx];
   const onLeave = db.leaves[dateStr] || [];
+  const onOD    = db.od[dateStr] || [];
+  // Combine leave + OD for substitution purposes
+  const allAbsent = [...new Set([...onLeave, ...onOD])];
   if(!db.subs[dateStr]) db.subs[dateStr] = {};
   const subs = db.subs[dateStr];
   const subCount = getSubCount(dateStr);
@@ -1877,8 +2344,18 @@ function renderSubstitutions() {
   const dateLabel = dateObj.toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   html += `<p class="text-sm text-muted mb-16">${dateLabel}</p>`;
 
-  if(!onLeave.length) {
-    html += '<div class="alert alert-success">No staff on leave for this date. No substitutions needed.</div>';
+  // Holiday check
+  const holiday = (db.holidays||{})[dateStr];
+  if(holiday) {
+    html += `<div class="alert" style="background:${holiday.type==='exam'?'#e3f2fd':'#e8f5e9'};border-left:4px solid ${holiday.type==='exam'?'var(--blue)':'var(--green)'};color:${holiday.type==='exam'?'#0d47a1':'var(--green)'}">
+      ${holiday.type==='exam'?'📝':'🏖'} <strong>${holiday.name}</strong> — This date is marked as a ${holiday.type==='exam'?'Exam Day':'Holiday'}. No substitutions needed.
+    </div>`;
+    document.getElementById('sub-output').innerHTML = html;
+    return;
+  }
+
+  if(!allAbsent.length) {
+    html += '<div class="alert alert-success">No staff on leave or OD for this date. No substitutions needed.</div>';
     document.getElementById('sub-output').innerHTML = html;
     return;
   }
@@ -1889,9 +2366,10 @@ function renderSubstitutions() {
     return;
   }
 
-  html += `<div class="alert alert-warning">${onLeave.length} staff on leave. Assign substitutes below.</div>`;
+  if(onLeave.length) html += `<div class="alert alert-danger" style="margin-bottom:8px">🔴 ${onLeave.length} staff on leave.</div>`;
+  if(onOD.length)    html += `<div class="alert alert-warning" style="margin-bottom:8px">🟡 ${onOD.length} staff on OD (On Duty).</div>`;
 
-  onLeave.forEach(sid => {
+  allAbsent.forEach(sid => {
     const staff = db.staff.find(s=>s.id===sid);
     if(!staff) return;
     html += `<div class="sub-card"><div class="sub-card-title">🔴 ${staff.name} — ${staff.designation||''}</div>`;
@@ -1913,7 +2391,7 @@ function renderSubstitutions() {
           // AND are not on leave AND are not the absent staff themselves
           const leaveSet = new Set(onLeave);
 
-          // Build set of staff who have a class assigned in this period
+          // Build set of staff who have a class assigned in this period (regular timetable)
           const busyThisPeriod = new Set();
           db.classes.forEach(cl2 => {
             const e2 = db.timetable[cl2.id]?.[dayKey]?.[String(p.num)];
@@ -1922,26 +2400,52 @@ function renderSubstitutions() {
             if(entry2 && entry2.staffId) busyThisPeriod.add(entry2.staffId);
           });
 
+          // Also block staff already assigned as substitute for ANOTHER class this same period
+          const alreadySubbing = new Set();
+          Object.entries(subs).forEach(([k, subId]) => {
+            if(!subId) return;
+            const parts = k.split('_');
+            const kPnum = parseInt(parts[parts.length-1]);
+            const kClsId = parts[parts.length-2];
+            if(kPnum === p.num && kClsId !== cls.id) alreadySubbing.add(subId);
+          });
+
           const freeStaff = db.staff.filter(s => {
             if(leaveSet.has(s.id)) return false;       // absent — never eligible
             if(s.id === sid) return false;              // the absent teacher themselves
-            if(s.id === assignedId) return true;        // always show current assignee even if now busy
+            if(s.id === assignedId) return true;        // always show current assignee
+            if(alreadySubbing.has(s.id)) return false; // already subbing another class this period
             return !busyThisPeriod.has(s.id);          // only truly free (no class this period)
           });
 
+          // Build tooltip showing why blocked staff are unavailable
+          const blockedBusy = db.staff.filter(s => !leaveSet.has(s.id) && s.id!==sid && s.id!==assignedId && busyThisPeriod.has(s.id));
+          const blockedSub  = db.staff.filter(s => !leaveSet.has(s.id) && s.id!==sid && s.id!==assignedId && alreadySubbing.has(s.id) && !busyThisPeriod.has(s.id));
+
           let leisureBtns = '';
-          if(freeStaff.length === 0) {
+          if(freeStaff.length === 0 && blockedBusy.length === 0 && blockedSub.length === 0) {
             leisureBtns = '<span class="text-muted text-sm">No free staff this period</span>';
           } else {
+            // Show free staff as clickable
             leisureBtns = freeStaff.map(fs => {
               const cnt = subCount[fs.id] || 0;
               const isAssigned = assignedId === fs.id;
-              // Fix 4: No limit — show all free staff, just display count as info
               return `<button class="leisure-btn ${isAssigned?'assigned':''}"
-                onclick="assignSub('${dateStr}','${key}','${fs.id}')" title="${cnt} substitution(s) this day">
+                onclick="assignSub('${dateStr}','${key}','${fs.id}')" title="${cnt} sub(s) today">
                 ${fs.name}${cnt>0?` <span style="font-size:10px;opacity:0.7">(${cnt})</span>`:''}
               </button>`;
             }).join('');
+            // Show blocked-busy staff as disabled with reason
+            if(blockedBusy.length || blockedSub.length) {
+              leisureBtns += '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">';
+              blockedBusy.forEach(fs => {
+                leisureBtns += `<span style="font-size:11px;padding:3px 8px;border-radius:12px;background:#f5f5f5;color:#aaa;border:1px solid #eee" title="Has class this period">🔒 ${fs.name} (in class)</span>`;
+              });
+              blockedSub.forEach(fs => {
+                leisureBtns += `<span style="font-size:11px;padding:3px 8px;border-radius:12px;background:#fff3e0;color:#e65100;border:1px solid #ffe0b2" title="Already subbing another class this period">🔄 ${fs.name} (subbing)</span>`;
+              });
+              leisureBtns += '</div>';
+            }
           }
 
           html += `<div class="sub-period">
@@ -1993,12 +2497,407 @@ function removeSub(dateStr, key) {
 }
 
 // ═══════════════════════════════════════════════════════
+// HOLIDAYS
+// ═══════════════════════════════════════════════════════
+function addHoliday() {
+  const date = document.getElementById('holiday-date').value;
+  const type = document.getElementById('holiday-type').value;
+  const name = document.getElementById('holiday-name').value.trim();
+  if(!date) { showToast('Please select a date.', 'danger'); return; }
+  if(!name) { showToast('Please enter a name for this holiday.', 'danger'); return; }
+  if(!db.holidays) db.holidays = {};
+  db.holidays[date] = { name, type };
+  saveData();
+  document.getElementById('holiday-name').value = '';
+  renderHolidaysList();
+  showToast((type==='exam'?'📝 Exam day':'🏖 Holiday') + ' "' + name + '" added.', 'success');
+}
+
+function removeHoliday(dateStr) {
+  if(!db.holidays) return;
+  const h = db.holidays[dateStr];
+  delete db.holidays[dateStr];
+  saveData();
+  renderHolidaysList();
+  showToast((h?.name||'Holiday') + ' removed.', 'info');
+}
+
+function renderHolidaysList() {
+  const el = document.getElementById('holidays-list');
+  if(!db.holidays || !Object.keys(db.holidays).length) {
+    el.innerHTML = '<div class="text-muted text-sm" style="padding:8px">No holidays or exam days added yet.</div>';
+    return;
+  }
+  const sorted = Object.entries(db.holidays).sort((a,b)=>a[0].localeCompare(b[0]));
+  let html = '<div class="table-wrap"><table><thead><tr><th>Date</th><th>Day</th><th>Type</th><th>Name</th><th>Action</th></tr></thead><tbody>';
+  sorted.forEach(([dateStr, h]) => {
+    const d = new Date(dateStr + 'T00:00:00');
+    const dayName = d.toLocaleDateString('en-IN',{weekday:'long'});
+    const dateLabel = d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+    const badge = h.type==='exam'
+      ? '<span class="badge" style="background:#e3f2fd;color:#0d47a1">📝 Exam Day</span>'
+      : '<span class="badge" style="background:#e8f5e9;color:#2e7d32">🏖 Holiday</span>';
+    html += `<tr>
+      <td>${dateLabel}</td>
+      <td>${dayName}</td>
+      <td>${badge}</td>
+      <td><strong>${h.name}</strong></td>
+      <td><button class="btn btn-danger btn-sm" onclick="removeHoliday('${dateStr}')">Remove</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════
+// SPECIAL CLASS
+// ═══════════════════════════════════════════════════════
+function populateSCDropdowns() {
+  const clsSel = document.getElementById('sc-class');
+  const stfSel = document.getElementById('sc-staff');
+  if(!clsSel || !stfSel) return;
+  clsSel.innerHTML = db.classes.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  stfSel.innerHTML = db.staff.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+}
+
+function checkSCClash() {
+  const dateStr  = document.getElementById('sc-date').value;
+  const staffId  = document.getElementById('sc-staff').value;
+  const scStart  = document.getElementById('sc-start').value;
+  const scEnd    = document.getElementById('sc-end').value;
+  const warnEl   = document.getElementById('sc-clash-warn');
+  if(!dateStr || !staffId || !scStart || !scEnd) { warnEl.style.display='none'; return; }
+
+  const dateObj  = new Date(dateStr+'T00:00:00');
+  const dayKey   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dateObj.getDay()];
+  const scS      = timeToMins(scStart);
+  const scE      = timeToMins(scEnd);
+  const staff    = db.staff.find(s=>s.id===staffId);
+  const clashes  = [];
+
+  // Check regular timetable for time overlap
+  db.classes.forEach(cls => {
+    const tt = db.timetable[cls.id]?.[dayKey] || {};
+    Object.entries(tt).forEach(([pnum, entry]) => {
+      if(entry && entry.staffId === staffId) {
+        const p = db.periods.find(pr=>pr.num===parseInt(pnum) && (pr.type==='period'||!pr.type));
+        if(p) {
+          const pS = timeToMins(p.start), pE = timeToMins(p.end);
+          if(scS < pE && scE > pS) clashes.push(`P${pnum} ${fmt12(p.start)}–${fmt12(p.end)} (${cls.name})`);
+        }
+      }
+    });
+  });
+
+  if(clashes.length) {
+    warnEl.style.display = '';
+    warnEl.innerHTML = `⚠ <strong>${staff?.name||''}</strong> has regular periods overlapping with this special class: ${clashes.join(', ')}. You can still save — this is just a warning.`;
+  } else {
+    warnEl.style.display = 'none';
+  }
+}
+
+function addSpecialClass() {
+  const dateStr = document.getElementById('sc-date').value;
+  const classId = document.getElementById('sc-class').value;
+  const staffId = document.getElementById('sc-staff').value;
+  const subject = document.getElementById('sc-subject').value.trim();
+  const start   = document.getElementById('sc-start').value;
+  const end     = document.getElementById('sc-end').value;
+  const note    = document.getElementById('sc-note').value.trim();
+
+  if(!dateStr) { showToast('Please select a date.','danger'); return; }
+  if(!classId) { showToast('Please select a class.','danger'); return; }
+  if(!staffId) { showToast('Please select a staff.','danger'); return; }
+  if(!subject) { showToast('Please enter a subject.','danger'); return; }
+  if(!start||!end||start>=end) { showToast('Please set valid start and end times.','danger'); return; }
+
+  if(!db.specialClasses) db.specialClasses = {};
+  if(!db.specialClasses[dateStr]) db.specialClasses[dateStr] = [];
+  db.specialClasses[dateStr].push({
+    id: 'sc'+Date.now(), classId, staffId, subject, start, end, note
+  });
+  saveData();
+
+  // Clear fields
+  document.getElementById('sc-subject').value = '';
+  document.getElementById('sc-note').value = '';
+  document.getElementById('sc-clash-warn').style.display = 'none';
+
+  // Refresh list for same date
+  const viewPicker = document.getElementById('sc-view-date');
+  if(viewPicker && !viewPicker.value) viewPicker.value = dateStr;
+  if(viewPicker) viewPicker.value = dateStr;
+  renderSpecialClassList();
+  showToast('Special class added for ' + new Date(dateStr+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) + '.', 'success');
+}
+
+function removeSpecialClass(dateStr, scId) {
+  if(!db.specialClasses||!db.specialClasses[dateStr]) return;
+  db.specialClasses[dateStr] = db.specialClasses[dateStr].filter(sc=>sc.id!==scId);
+  if(!db.specialClasses[dateStr].length) delete db.specialClasses[dateStr];
+  saveData();
+  renderSpecialClassList();
+  showToast('Special class removed.','info');
+}
+
+function renderSpecialClassList() {
+  const el = document.getElementById('sc-list');
+  if(!el) return;
+  const dateStr = document.getElementById('sc-view-date')?.value || todayStr();
+  const dateObj = new Date(dateStr+'T00:00:00');
+  const dateLabel = dateObj.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const list = (db.specialClasses||{})[dateStr] || [];
+
+  // Holiday banner
+  const holiday = (db.holidays||{})[dateStr];
+  let html = `<p class="text-sm text-muted mb-16">${dateLabel}</p>`;
+  if(holiday) {
+    html += `<div class="alert" style="background:${holiday.type==='exam'?'#e3f2fd':'#e8f5e9'};border-left:4px solid ${holiday.type==='exam'?'var(--blue)':'var(--green)'};color:${holiday.type==='exam'?'#0d47a1':'var(--green)'}">
+      ${holiday.type==='exam'?'📝':'🏖'} <strong>${holiday.name}</strong> — Special classes can still be scheduled on this date.
+    </div>`;
+  }
+
+  if(!list.length) {
+    html += '<div class="text-muted text-sm" style="padding:8px">No special classes scheduled for this date.</div>';
+    el.innerHTML = html; return;
+  }
+
+  // Sort by start time
+  const sorted = [...list].sort((a,b)=>a.start.localeCompare(b.start));
+  html += '<div class="table-wrap"><table><thead><tr><th>Time</th><th>Class</th><th>Subject</th><th>Staff</th><th>Note</th><th>Action</th></tr></thead><tbody>';
+  sorted.forEach(sc => {
+    const cls   = db.classes.find(c=>c.id===sc.classId);
+    const staff = db.staff.find(s=>s.id===sc.staffId);
+    html += `<tr>
+      <td style="white-space:nowrap;font-weight:500">${fmt12(sc.start)} – ${fmt12(sc.end)}</td>
+      <td><span style="background:#f3e5f5;color:#6a1b9a;padding:2px 8px;border-radius:10px;font-size:12px">${cls?.name||'—'}</span></td>
+      <td>${sc.subject}</td>
+      <td>${staff?.name||'—'}</td>
+      <td style="font-size:12px;color:var(--gray-600)">${sc.note||'—'}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="removeSpecialClass('${dateStr}','${sc.id}')">Remove</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════
+// OD (ON DUTY)
+// ═══════════════════════════════════════════════════════
+function renderMarkOD() {
+  const picker = document.getElementById('od-date-picker');
+  if(!picker.value) picker.value = todayStr();
+  const dateStr = picker.value;
+  const dateObj = new Date(dateStr+'T00:00:00');
+  const formatted = dateObj.toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('od-day-label').textContent = 'Marking OD for: '+formatted;
+
+  // Holiday check
+  const holiday = (db.holidays||{})[dateStr];
+  if(holiday) {
+    document.getElementById('od-staff-list').innerHTML = `
+      <div class="alert" style="background:#e8f5e9;border-left:4px solid var(--green);color:var(--green)">
+        🏖 <strong>${holiday.name}</strong> — This is a holiday. OD marking is not typically needed.
+      </div>`;
+    return;
+  }
+
+  if(!db.od) db.od = {};
+  const onOD = db.od[dateStr] || [];
+  let html = '<div class="grid-2">';
+  db.staff.forEach(s => {
+    const checked = onOD.includes(s.id);
+    html += `<label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid ${checked?'#f9a825':'var(--gray-200)'};border-radius:var(--radius);background:${checked?'var(--gold-light)':'white'};cursor:pointer;transition:all 0.15s" id="od-lbl-${s.id}">
+      <input type="checkbox" value="${s.id}" ${checked?'checked':''} onchange="toggleODUI('${s.id}',this.checked)">
+      <div style="flex:1">
+        <div style="font-weight:500;font-size:14px">${s.name}</div>
+        <div style="font-size:12px;color:var(--gray-600)">${s.designation||''}</div>
+      </div>
+      <span class="badge" style="margin-left:auto;background:var(--gold-light);color:#795500;border:1px solid var(--gold);${checked?'':'display:none'}" id="od-badge-${s.id}">On Duty</span>
+    </label>`;
+  });
+  html += '</div>';
+  document.getElementById('od-staff-list').innerHTML = html;
+}
+
+function toggleODUI(sid, checked) {
+  const lbl   = document.getElementById('od-lbl-'+sid);
+  const badge = document.getElementById('od-badge-'+sid);
+  if(checked) {
+    lbl.style.borderColor  = '#f9a825';
+    lbl.style.background   = 'var(--gold-light)';
+    if(badge) badge.style.display = '';
+  } else {
+    lbl.style.borderColor  = 'var(--gray-200)';
+    lbl.style.background   = 'white';
+    if(badge) badge.style.display = 'none';
+  }
+}
+
+function saveOD() {
+  const dateStr = document.getElementById('od-date-picker').value || todayStr();
+  const checked = [...document.querySelectorAll('#od-staff-list input[type=checkbox]:checked')].map(c=>c.value);
+  if(!db.od) db.od = {};
+  db.od[dateStr] = checked;
+  saveData();
+  const label = new Date(dateStr+'T00:00:00').toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  showToast('OD saved for '+label+' — '+checked.length+' staff on duty.','success');
+  renderMarkOD();
+  renderHome(); // refresh home stats
+}
+
+// ═══════════════════════════════════════════════════════
+// WORKLOAD REPORT  (updated: includes OD + Special Class)
+// ═══════════════════════════════════════════════════════
+function renderWorkload() {
+  const out = document.getElementById('workload-output');
+  if(!db.staff.length) { out.innerHTML = '<div class="alert alert-info">No staff added yet.</div>'; return; }
+
+  // 1. Regular timetable periods per week
+  const regularCount = {};
+  db.staff.forEach(s => regularCount[s.id] = 0);
+  DAYS.forEach(day => {
+    db.classes.forEach(cls => {
+      Object.entries(db.timetable[cls.id]?.[day]||{}).forEach(([, entry]) => {
+        if(entry?.staffId && regularCount[entry.staffId]!==undefined) regularCount[entry.staffId]++;
+      });
+    });
+  });
+
+  // 2. Substitution count (all time)
+  const subCount = {};
+  db.staff.forEach(s => subCount[s.id] = 0);
+  Object.values(db.subs||{}).forEach(dayData => {
+    Object.values(dayData||{}).forEach(subId => {
+      if(subId && subCount[subId]!==undefined) subCount[subId]++;
+    });
+  });
+
+  // 3. OD days count (all time)
+  const odCount = {};
+  db.staff.forEach(s => odCount[s.id] = 0);
+  Object.values(db.od||{}).forEach(dayList => {
+    dayList.forEach(sid => { if(odCount[sid]!==undefined) odCount[sid]++; });
+  });
+
+  // 4. Special class hours (all time)
+  const scCount = {}; // periods equivalent (each special class = 1 entry)
+  db.staff.forEach(s => scCount[s.id] = 0);
+  Object.values(db.specialClasses||{}).forEach(dayList => {
+    dayList.forEach(sc => { if(sc.staffId && scCount[sc.staffId]!==undefined) scCount[sc.staffId]++; });
+  });
+
+  // Sort by total load
+  const sorted = [...db.staff].sort((a,b)=>
+    (regularCount[b.id]+subCount[b.id]) - (regularCount[a.id]+subCount[a.id]));
+
+  const maxReg = Math.max(...sorted.map(s=>regularCount[s.id]),1);
+  const maxSub = Math.max(...sorted.map(s=>subCount[s.id]),1);
+
+  let html = `<div class="table-wrap"><table>
+    <thead><tr>
+      <th>Staff</th>
+      <th style="color:#1565c0">📅 Regular/Week</th>
+      <th style="color:#e65100">🔄 Subs (total)</th>
+      <th style="color:#f9a825">🟡 OD Days</th>
+      <th style="color:#6a1b9a">🌟 Special Classes</th>
+      <th>Load</th>
+    </tr></thead><tbody>`;
+
+  sorted.forEach(s => {
+    const reg   = regularCount[s.id];
+    const sub   = subCount[s.id];
+    const od    = odCount[s.id];
+    const sc    = scCount[s.id];
+    const total = reg + sub;
+    const regPct = Math.round((reg/maxReg)*100);
+    const subPct = Math.round((sub/Math.max(maxSub,1))*100);
+    const loadColor = total>45?'var(--red)':total>35?'var(--orange)':'var(--green)';
+
+    html += `<tr>
+      <td>
+        <div style="font-weight:500">${s.name}</div>
+        <div style="font-size:11px;color:var(--gray-600)">${s.designation||''}</div>
+      </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="flex:1;background:#e3f2fd;border-radius:4px;height:8px;min-width:50px">
+            <div style="width:${regPct}%;background:var(--blue);height:8px;border-radius:4px"></div>
+          </div>
+          <span style="font-weight:600;color:var(--blue);min-width:24px;text-align:right">${reg}</span>
+        </div>
+      </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="flex:1;background:#fff3e0;border-radius:4px;height:8px;min-width:50px">
+            <div style="width:${subPct}%;background:var(--orange);height:8px;border-radius:4px"></div>
+          </div>
+          <span style="font-weight:600;color:var(--orange);min-width:24px;text-align:right">${sub}</span>
+        </div>
+      </td>
+      <td><span style="font-weight:600;color:#795500">${od>0?od:'—'}</span></td>
+      <td><span style="font-weight:600;color:#6a1b9a">${sc>0?sc:'—'}</span></td>
+      <td><span style="font-weight:700;color:${loadColor};font-size:16px">${total}</span></td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  html += `<div style="display:flex;gap:16px;margin-top:14px;font-size:12px;flex-wrap:wrap;color:var(--gray-600)">
+    <span>📅 <strong>Regular</strong> = periods/week in timetable</span>
+    <span>🔄 <strong>Subs</strong> = total substitution duties (all time)</span>
+    <span>🟡 <strong>OD Days</strong> = total On Duty days (all time)</span>
+    <span>🌟 <strong>Special Classes</strong> = total special class assignments (all time)</span>
+  </div>`;
+  out.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════
 // PRINT
 // ═══════════════════════════════════════════════════════
 function printPage(pageId) {
+  const school = (db.settings&&db.settings.schoolName) || 'RGI School';
+  const acYear = (db.settings&&db.settings.academicYear) || '';
+  const now    = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  const headers = {
+    'teacher-view':    () => { const s=db.staff.find(s=>s.id===document.getElementById('tv-teacher-select').value); return s?`Teacher Timetable — ${s.name}`:'Teacher Timetable'; },
+    'class-view':      () => 'Class Timetable',
+    'leave-view':      () => { const d=document.getElementById('lv-date-picker')?.value; return 'Leaves & Substitutions'+(d?' — '+new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'}):''); },
+    'mark-leave':      () => { const d=document.getElementById('leave-date-picker')?.value; return 'Leave Record'+(d?' — '+new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'}):''); },
+    'substitutions':   () => { const d=document.getElementById('sub-date-picker')?.value; return 'Substitution Schedule'+(d?' — '+new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'}):''); },
+    'assign-timetable':() => { const s=document.getElementById('tt-class-select'); const c=db.classes.find(x=>x.id===s?.value); return c?`Timetable — ${c.name}`:'Timetable'; },
+    'holidays':        () => 'Holidays & Exam Days',
+    'special-class':   () => { const d=document.getElementById('sc-view-date')?.value; return 'Special Classes'+(d?' — '+new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'}):''); },
+    'mark-od':         () => { const d=document.getElementById('od-date-picker')?.value; return 'On Duty (OD) Record'+(d?' — '+new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'}):''); },
+    'workload':        () => 'Staff Workload Report',
+  };
+
+  const hdrIds = {
+    'teacher-view':'print-teacher-header','class-view':'print-class-header',
+    'leave-view':'print-lv-header','mark-leave':'print-leave-header',
+    'substitutions':'print-sub-header','assign-timetable':'print-tt-header',
+    'holidays':'print-hol-header','special-class':'print-sc-header',
+    'mark-od':'print-od-header','workload':'print-wl-header',
+  };
+
+  // Step 1: set print-target
   document.querySelectorAll('.page').forEach(p => p.classList.remove('print-target'));
-  document.getElementById('page-' + pageId).classList.add('print-target');
-  window.print();
+  const targetPage = document.getElementById('page-'+pageId);
+  if(!targetPage) { showToast('Print target not found.','danger'); return; }
+  targetPage.classList.add('print-target');
+
+  // Step 2: populate print header
+  const hdrEl = document.getElementById(hdrIds[pageId]);
+  if(hdrEl) {
+    const subtitle = (headers[pageId]||(() => pageId))();
+    hdrEl.innerHTML = `
+      <div class="print-school-name">${school}</div>
+      <div class="print-meta">${subtitle}${acYear?' &nbsp;|&nbsp; '+acYear:''} &nbsp;|&nbsp; ${now}</div>
+      <hr class="print-divider">`;
+  }
+
+  // Step 3: wait for DOM to render then print
+  setTimeout(() => { window.print(); }, 200);
 }
 
 // ═══════════════════════════════════════════════════════
