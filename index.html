@@ -602,6 +602,7 @@
   </div>
   <div id="admin-status">
     <span id="autosave-indicator" style="font-size:11px;color:var(--gold);opacity:0;transition:opacity 0.4s;margin-right:6px;white-space:nowrap"></span>
+    <button id="btn-sync-now" onclick="pullFromCloud()" title="Pull latest data from server" style="background:none;border:1px solid rgba(255,255,255,0.3);color:rgba(255,255,255,0.85);padding:4px 10px;border-radius:20px;cursor:pointer;font-size:12px;font-family:inherit">📡 Sync</button>
     <span id="admin-badge" class="badge-admin hidden">Admin</span>
     <button id="btn-logout" class="btn-logout hidden" onclick="logout()">Logout</button>
     <button id="btn-admin-login" onclick="openLogin()">Admin Login</button>
@@ -1139,6 +1140,144 @@
 
 <script>
 // ═══════════════════════════════════════════════════════
+// ██████  GOOGLE SHEETS SYNC LAYER  ██████
+// Replace the URL below with YOUR deployed Apps Script Web App URL
+// ═══════════════════════════════════════════════════════
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4I0YlQjIKI5vok9wr9NuvNiN1m5W0q3LADNlDJCgQNzc55fK2OHi8bVsV810bLgdoEw/exec';
+
+// Unique ID for this device (used for "modifiedBy" tracking)
+let DEVICE_ID = localStorage.getItem('rgi_device_id');
+if (!DEVICE_ID) {
+  DEVICE_ID = 'device_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+  localStorage.setItem('rgi_device_id', DEVICE_ID);
+}
+
+// Track last known server timestamp so we only pull when something changed
+let lastKnownServerTS = '';
+
+// Sync state
+let syncInterval = null;
+let isSyncing = false;
+
+// ── Push local db → Google Sheets ───────────────────────────────────
+async function pushToCloud() {
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('YOUR_APPS')) return;
+  try {
+    setSyncStatus('pushing');
+    const payload = { ...db, deviceId: DEVICE_ID };
+    const res = await fetch(APPS_SCRIPT_URL + '?action=push', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    const json = await res.json();
+    if (json.ok) {
+      lastKnownServerTS = json.ts;
+      setSyncStatus('ok');
+    } else {
+      setSyncStatus('error', json.error);
+    }
+  } catch (e) {
+    setSyncStatus('error', e.message);
+  }
+}
+
+// ── Pull Google Sheets → local db ───────────────────────────────────
+async function pullFromCloud(silent = false) {
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('YOUR_APPS')) return;
+  if (isSyncing) return;
+  isSyncing = true;
+  try {
+    if (!silent) setSyncStatus('pulling');
+    const res = await fetch(APPS_SCRIPT_URL + '?action=pull&cb=' + Date.now());
+    const json = await res.json();
+    if (json.ok && json.data) {
+      // Merge server data into local db
+      const d = json.data;
+      if (d.staff)          db.staff          = d.staff;
+      if (d.classes)        db.classes        = d.classes;
+      if (d.periods)        db.periods        = d.periods;
+      if (d.timetable)      db.timetable      = d.timetable;
+      if (d.leaves)         db.leaves         = d.leaves;
+      if (d.subs)           db.subs           = d.subs;
+      if (d.classBreaks)    db.classBreaks    = d.classBreaks;
+      if (d.holidays)       db.holidays       = d.holidays;
+      if (d.specialClasses) db.specialClasses = d.specialClasses;
+      if (d.od)             db.od             = d.od;
+      if (d.settings)       db.settings       = d.settings;
+      // Persist locally
+      localStorage.setItem('rgi_timetable_v2', JSON.stringify(db));
+      // Refresh the currently visible page
+      refreshCurrentPage();
+      setSyncStatus('ok');
+    } else {
+      if (!silent) setSyncStatus('error', json.error);
+    }
+  } catch (e) {
+    if (!silent) setSyncStatus('error', e.message);
+  } finally {
+    isSyncing = false;
+  }
+}
+
+// ── 6-second poller: check timestamp, pull only if changed ──────────
+async function pollForChanges() {
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('YOUR_APPS')) return;
+  try {
+    const res = await fetch(APPS_SCRIPT_URL + '?action=ts&cb=' + Date.now());
+    const json = await res.json();
+    if (json.ok && json.ts && json.ts !== lastKnownServerTS) {
+      lastKnownServerTS = json.ts;
+      await pullFromCloud(true); // silent pull
+      showToast('📡 Timetable updated from server', 'info', 2500);
+    }
+  } catch (_) { /* network blip — ignore */ }
+}
+
+// ── Start / stop sync interval ───────────────────────────────────────
+function startSyncInterval() {
+  if (syncInterval) clearInterval(syncInterval);
+  syncInterval = setInterval(pollForChanges, 6000); // every 6 seconds
+}
+
+// ── Refresh the currently active page after a pull ──────────────────
+function refreshCurrentPage() {
+  const active = document.querySelector('.page.active');
+  if (!active) return;
+  const id = active.id.replace('page-', '');
+  // Re-render whichever page is showing
+  try {
+    if (id === 'home')              renderHome();
+    if (id === 'teacher-view')      renderTeacherTimetable();
+    if (id === 'class-view')        renderClassTimetable();
+    if (id === 'leave-view')        renderLeaveView();
+    if (id === 'manage-staff')      renderStaffTable();
+    if (id === 'manage-classes')    renderClassesTable();
+    if (id === 'manage-periods')    renderPeriodsEditor();
+    if (id === 'assign-timetable')  loadTimetableEditor();
+    if (id === 'mark-leave')        renderMarkLeave();
+    if (id === 'substitutions')     renderSubstitutions();
+    if (id === 'holidays')          renderHolidaysList();
+    if (id === 'special-class')     renderSpecialClassList();
+    if (id === 'mark-od')           renderMarkOD();
+    if (id === 'workload')          renderWorkload();
+  } catch (_) {}
+}
+
+// ── Sync status indicator ────────────────────────────────────────────
+function setSyncStatus(state, msg) {
+  const ind = document.getElementById('autosave-indicator');
+  if (!ind) return;
+  const now = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+  if (state === 'ok')       { ind.textContent = '☁ Synced ' + now; ind.style.color = '#4caf50'; }
+  else if (state === 'pushing') { ind.textContent = '⬆ Pushing…';  ind.style.color = 'var(--gold)'; }
+  else if (state === 'pulling') { ind.textContent = '⬇ Pulling…';  ind.style.color = 'var(--gold)'; }
+  else if (state === 'error')   { ind.textContent = '⚠ Sync error'; ind.style.color = 'var(--red)'; console.warn('Sync error:', msg); }
+  ind.style.opacity = '1';
+  clearTimeout(ind._timer);
+  if (state === 'ok') ind._timer = setTimeout(() => { ind.style.opacity = '0'; }, 4000);
+}
+
+// ═══════════════════════════════════════════════════════
 // TOAST UTILITY
 // ═══════════════════════════════════════════════════════
 function showToast(msg, type='info', duration=3500) {
@@ -1221,16 +1360,8 @@ function loadData() {
 
 function saveData() {
   localStorage.setItem('rgi_timetable_v2', JSON.stringify(db));
-  // Show auto-save indicator
-  const ind = document.getElementById('autosave-indicator');
-  if(ind) {
-    const now = new Date();
-    const t = now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-    ind.textContent = '✓ Saved ' + t;
-    ind.style.opacity = '1';
-    clearTimeout(ind._timer);
-    ind._timer = setTimeout(() => { ind.style.opacity = '0'; }, 2500);
-  }
+  // Push to Google Sheets (async — non-blocking)
+  pushToCloud();
 }
 
 function seedData() {
@@ -2906,6 +3037,11 @@ function printPage(pageId) {
 loadData();
 updateAdminUI();
 renderHome();
+// ── Start Google Sheets sync ────────────────────────────────────────
+// On first load, pull from cloud to get the latest data
+pullFromCloud();
+// Then poll every 6 seconds for changes made on other devices
+startSyncInterval();
 </script>
 </body>
 </html>
