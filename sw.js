@@ -7,12 +7,12 @@ const CACHE_NAME = 'rgi-timetable-v1';
 const BASE_PATH = '/RMS-Time-Table-';
 
 // Files to pre-cache on install
+// ⚠️ Only list files that ACTUALLY EXIST in your repo root
 const PRECACHE_URLS = [
   BASE_PATH + '/',
   BASE_PATH + '/index.html',
   BASE_PATH + '/manifest.json',
-  BASE_PATH + '/icons/icon-192x192.png',
-  BASE_PATH + '/icons/icon-512x512.png'
+  BASE_PATH + '/rms-logo.png'
 ];
 
 // ── INSTALL ──────────────────────────────────────────────────
@@ -81,7 +81,7 @@ async function networkFirst(request) {
     console.warn('[SW] Network failed, serving from cache:', request.url);
     const cached = await caches.match(request);
     if (cached) return cached;
-    // Final fallback: offline page (serve index.html as shell)
+    // Final fallback: serve index.html as shell
     return caches.match(BASE_PATH + '/index.html');
   }
 }
@@ -103,17 +103,9 @@ async function cacheFirst(request) {
     return networkResponse;
   } catch (err) {
     console.warn('[SW] Cache miss and network failed for:', request.url);
-    // Return an empty 404 rather than crashing
     return new Response('Resource not available offline', {
       status: 404,
       statusText: 'Not Found'
     });
   }
 }
-
-// ── BACKGROUND SYNC (optional) ────────────────────────────────
-// If you ever add server-side sync, register a sync tag here.
-// self.addEventListener('sync', (event) => { ... });
-
-// ── PUSH NOTIFICATIONS (optional) ────────────────────────────
-// self.addEventListener('push', (event) => { ... });
