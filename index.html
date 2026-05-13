@@ -3,18 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- PWA Manifest -->
+<!-- PWA Manifest Link -->
 <link rel="manifest" href="manifest.json">
 
-<!-- Theme color (matches your dark background) -->
-<meta name="theme-color" content="#1a1a2e">
-
-<!-- iOS PWA support -->
+<!-- iOS / Apple Specific -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="RGI Timetable">
-<link rel="apple-touch-icon" href="icons/icon-192x192.png">
-
+<meta name="apple-mobile-web-app-title" content="RMS">
+<link rel="apple-touch-icon" href="icon-512x512.png">
+  
 <!-- Fallback icon for other browsers -->
 <link rel="icon" type="image/png" sizes="192x192" href="rms-logo.png">
 <title>RGI Teacher Timetable System</title>
@@ -2802,8 +2799,8 @@ startSyncInterval();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/RMS-Time-Table-/sw.js')
-        .then(reg => console.log('[SW] Registered:', reg.scope))
-        .catch(err => console.error('[SW] Registration failed:', err));
+        .then((reg) => console.log('Service Worker registered.', reg))
+        .catch((err) => console.log('Registration failed.', err));
     });
   }
 </script>
