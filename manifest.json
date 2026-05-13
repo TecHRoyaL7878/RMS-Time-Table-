@@ -2,7 +2,7 @@
   "name": "RGI Timetable",
   "short_name": "RGI",
   "description": "RGI Timetable App",
-  "start_url": "/",
+  "start_url": "/RMS-Time-Table/",
   "display": "standalone",
   "background_color": "#1a1a2e",
   "theme_color": "#1a1a2e",
